@@ -39,8 +39,11 @@ const mapCustomer = (c: any): Customer => ({
     email: c.email,
     address: c.address,
     totalCredit: Number(c.total_credit || 0),
+    currentBalance: Number(c.total_credit || 0),
+    totalPurchases: Number(c.total_purchases || 0),
     creditLimit: Number(c.credit_limit || 0),
-    isActive: c.is_active
+    isActive: c.is_active,
+    createdDate: new Date(c.created_at || Date.now())
 });
 
 
@@ -96,9 +99,12 @@ export const customerApi = {
                     phone: c.phone,
                     email: c.email || '',
                     address: c.address || '',
-                    totalCredit: 0, // Not stored in basic Dexie schema yet
+                    totalCredit: 0,
+                    currentBalance: 0,
+                    totalPurchases: 0,
                     creditLimit: 0,
-                    isActive: true
+                    isActive: true,
+                    createdDate: new Date()
                 }));
             }
             throw error;

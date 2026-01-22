@@ -6,6 +6,7 @@ export type Customer = {
     address?: string;
     currentBalance: number; // Receivable
     totalPurchases: number;
+    totalCredit: number; // Added to match API
     creditLimit: number;
     isActive: boolean;
     createdDate: Date;

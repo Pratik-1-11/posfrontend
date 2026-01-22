@@ -138,7 +138,6 @@ const DashboardContent: React.FC = () => {
     };
 
     const salesTrend = calculateTrend(todayStats.total_revenue, yesterdayStats.total_revenue);
-    const transTrend = calculateTrend(todayStats.total_transactions, yesterdayStats.total_transactions);
 
     const totalProducts = products.length;
 
