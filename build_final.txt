@@ -1,0 +1,16 @@
+
+> pos-mvp@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.2.4 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 2144 modules transformed.
+[31m✗[39m Build failed in 14.98s
+[31merror during build:
+[31m[vite:load-fallback] Could not load D:\Personal Projects\pos-mvp\src/pages/PosScreen.module.css (imported by src/components/pos/HeldBillsModal.tsx): ENOENT: no such file or directory, open 'D:\Personal Projects\pos-mvp\src\pages\PosScreen.module.css'[31m
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1246:14)
+    at async Object.handler (file:///D:/Personal%20Projects/pos-mvp/node_modules/vite/dist/node/chunks/config.js:33817:21)
+    at async PluginDriver.hookFirstAndGetPlugin (file:///D:/Personal%20Projects/pos-mvp/node_modules/rollup/dist/es/shared/node-entry.js:22333:28)
+    at async file:///D:/Personal%20Projects/pos-mvp/node_modules/rollup/dist/es/shared/node-entry.js:21333:33
+    at async Queue.work (file:///D:/Personal%20Projects/pos-mvp/node_modules/rollup/dist/es/shared/node-entry.js:22561:32)[39m

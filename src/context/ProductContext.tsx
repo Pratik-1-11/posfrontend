@@ -1,0 +1,127 @@
+import { createContext, useContext, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '@/db/db';
+import type { ReactNode } from 'react';
+import type { Product } from '@/types/product';
+import { productApi } from '@/services/api/productApi';
+
+type ProductContextType = {
+  products: Product[];
+  loading: boolean;
+  refresh: () => void;
+  refreshProducts: () => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<Product | undefined>;
+  deleteProduct: (id: string) => Promise<boolean>;
+  updateStock: (items: { id: string; quantity: number }[]) => Promise<void>;
+  getProductById: (id: string) => Product | undefined;
+};
+
+const ProductContext = createContext<ProductContextType | undefined>(undefined);
+
+const PRODUCTS_QUERY_KEY = ['products'];
+
+export const ProductProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
+
+  // 1. Load from localStorage if available (Instant Load)
+  const getStoredProducts = (): Product[] | undefined => {
+    try {
+      const stored = localStorage.getItem('pos_products_cache');
+      return stored ? JSON.parse(stored) : undefined;
+    } catch (e) {
+      console.warn('Failed to parse stored products', e);
+      return undefined;
+    }
+  };
+
+  const {
+    data: products = [],
+    isLoading,
+  } = useQuery<Product[]>({
+    queryKey: PRODUCTS_QUERY_KEY,
+    queryFn: productApi.getAll,
+    initialData: getStoredProducts, // Use cached data immediately
+    staleTime: 5 * 60 * 1000, // 5 minutes (don't refetch instantly if fresh)
+    gcTime: 24 * 60 * 60 * 1000, // Keep in memory/cache for 24 hours
+  });
+
+  // 2. Sync with Local Storage & Dexie (Background Update)
+  useEffect(() => {
+    if (products.length > 0) {
+      // Sync to LocalStorage (Legacy/Fast Init)
+      localStorage.setItem('pos_products_cache', JSON.stringify(products));
+
+      // Sync to Dexie (Offline Database)
+      db.products.clear().then(() => {
+        db.products.bulkPut(products).catch(err => console.error('Failed to sync products to Dexie:', err));
+      });
+    }
+  }, [products]);
+
+  const getProductById = (id: string) => {
+    return products.find(p => p.id === id);
+  };
+
+  const addProductMutation = useMutation({
+    mutationFn: productApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Product> }) =>
+      productApi.update(id, updates),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
+    },
+  });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: productApi.delete,
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+      queryClient.removeQueries({ queryKey: ['product', id] });
+    },
+  });
+
+  const updateStockMutation = useMutation({
+    mutationFn: productApi.updateStock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+    },
+  });
+
+  const refreshProducts = () => {
+    queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+  };
+
+  const value = {
+    products,
+    loading: isLoading,
+    refresh: refreshProducts,
+    refreshProducts,
+    addProduct: addProductMutation.mutateAsync,
+    updateProduct: (id: string, updates: Partial<Product>) =>
+      updateProductMutation.mutateAsync({ id, updates }),
+    deleteProduct: deleteProductMutation.mutateAsync,
+    updateStock: updateStockMutation.mutateAsync,
+    getProductById,
+  };
+
+  return (
+    <ProductContext.Provider value={value}>
+      {children}
+    </ProductContext.Provider>
+  );
+};
+
+export const useProductContext = (): ProductContextType => {
+  const context = useContext(ProductContext);
+  if (!context) {
+    throw new Error('useProductContext must be used within a ProductProvider');
+  }
+  return context;
+};

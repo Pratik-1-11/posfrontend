@@ -1,0 +1,49 @@
+/* Billing Layout Styles */
+.billing-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    height: calc(100vh - var(--navbar-height));
+    overflow: hidden;
+}
+
+.billing-main {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    overflow-y: auto;
+    gap: 24px;
+}
+
+.billing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .billing-layout {
+        grid-template-columns: 1fr 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .billing-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+    }
+
+    .billing-main {
+        height: auto;
+        overflow: visible;
+    }
+
+    /* On mobile, cart might be a modal or below */
+}
