@@ -5,6 +5,8 @@ import { Download, Printer, X } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
 import { formatToNepaliDate } from '@/utils/date';
 import { useSettings } from '@/context/SettingsContext';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFInvoice } from './PDFInvoice';
 
 interface InvoiceItem {
   id: string;
@@ -191,19 +193,39 @@ export const Invoice: React.FC<InvoiceProps> = ({
     };
   }, []);
 
-  const handleDownload = () => {
-    window.print();
-  };
+  // ... (in the Invoice component, replace the handleDownload and button section)
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto my-8 print:shadow-none print:p-0 print:max-w-full print:my-0 print:rounded-none print-invoice">
       {/* Header with actions - hidden when printing */}
       <div className="flex justify-end items-start mb-8 no-print">
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDownload} size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Download
-          </Button>
+          <PDFDownloadLink
+            document={
+              <PDFInvoice
+                items={items}
+                subtotal={subtotal}
+                tax={tax}
+                grandTotal={grandTotal}
+                invoiceNumber={invoiceNumber}
+                date={date}
+                settings={settings}
+                paymentMethod={paymentMethod}
+                customerName={customerName}
+                amountReceived={amountReceived}
+                change={change}
+              />
+            }
+            fileName={`invoice-${invoiceNumber}.pdf`}
+          >
+            {({ blob, url, loading, error }) => (
+              <Button variant="outline" size="sm" disabled={loading}>
+                <Download className="mr-2 h-4 w-4" />
+                {loading ? 'Generating...' : 'Download PDF'}
+              </Button>
+            )}
+          </PDFDownloadLink>
+
           <Button onClick={handlePrint} size="sm">
             <Printer className="mr-2 h-4 w-4" />
             Print
