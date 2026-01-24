@@ -61,26 +61,25 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
     },
     tableRow: {
-        margin: 'auto',
         flexDirection: 'row',
         borderBottomWidth: 0.5,
         borderBottomColor: '#eee',
         minHeight: 24,
         alignItems: 'center',
+        width: '100%',
     },
     tableHeader: {
         backgroundColor: '#f8f9fa',
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
     },
-    tableColIndex: { width: '8%', textAlign: 'center' },
-    tableColDesc: { width: '42%', textAlign: 'left', paddingLeft: 4 },
+    tableColIndex: { width: '10%', textAlign: 'center' },
+    tableColDesc: { width: '45%', textAlign: 'left', paddingLeft: 4 },
     tableColQty: { width: '10%', textAlign: 'center' },
-    tableColRate: { width: '20%', textAlign: 'right', paddingRight: 4 },
+    tableColRate: { width: '15%', textAlign: 'right', paddingRight: 4 },
     tableColAmount: { width: '20%', textAlign: 'right', paddingRight: 4 },
 
     tableCell: {
-        margin: 'auto',
         marginTop: 5,
         marginBottom: 5,
         fontSize: 9,
@@ -212,33 +211,33 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
             </View>
 
             {/* Summary */}
-            <View style={styles.summarySection}>
+            <View style={styles.summarySection} wrap={false}>
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Subtotal:</Text>
-                    <Text style={styles.summaryValue}>{Number(subtotal).toFixed(2)}</Text>
+                    <Text style={styles.summaryValue}>{String(Number(subtotal).toFixed(2))}</Text>
                 </View>
                 {tax > 0 && (
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Tax:</Text>
-                        <Text style={styles.summaryValue}>{Number(tax).toFixed(2)}</Text>
+                        <Text style={styles.summaryValue}>{String(Number(tax).toFixed(2))}</Text>
                     </View>
                 )}
                 <View style={styles.totalRow}>
                     <Text style={[styles.summaryLabel, { fontWeight: 'bold', fontSize: 12 }]}>TOTAL:</Text>
-                    <Text style={[styles.summaryValue, { fontSize: 12 }]}>{Number(grandTotal).toFixed(2)}</Text>
+                    <Text style={[styles.summaryValue, { fontSize: 12 }]}>{String(Number(grandTotal).toFixed(2))}</Text>
                 </View>
 
-                {amountReceived !== undefined && (
+                {amountReceived !== undefined && amountReceived > 0 && (
                     <View style={[styles.summaryRow, { marginTop: 5 }]}>
                         <Text style={[styles.summaryLabel, { fontSize: 9 }]}>Cash Received:</Text>
-                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{Number(amountReceived).toFixed(2)}</Text>
+                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{String(Number(amountReceived).toFixed(2))}</Text>
                     </View>
                 )}
 
                 {change !== undefined && change > 0 && (
                     <View style={styles.summaryRow}>
                         <Text style={[styles.summaryLabel, { fontSize: 9 }]}>Change:</Text>
-                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{Number(change).toFixed(2)}</Text>
+                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{String(Number(change).toFixed(2))}</Text>
                     </View>
                 )}
 
@@ -253,7 +252,7 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
             </View>
 
             {/* Footer */}
-            <View style={{ position: 'absolute', bottom: 30, left: 0, right: 0 }}>
+            <View style={{ position: 'absolute', bottom: 30, left: 0, right: 0 }} wrap={false}>
                 <View style={styles.footer}>
                     <Text style={styles.footerMessage}>
                         {String(settings?.footerMessage || settings?.receipt?.footer || 'Thank you for shopping!')}

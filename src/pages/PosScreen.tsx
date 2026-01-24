@@ -262,7 +262,7 @@ export const PosScreen: React.FC = () => {
     if (showInvoice) {
       const timer = setTimeout(() => {
         window.print();
-        setShowInvoice(false);
+        // Removed auto-close to allow PDF download
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -442,7 +442,7 @@ export const PosScreen: React.FC = () => {
       {/* Print Overlay */}
       {showInvoice && invoiceData && (
         <div className="fixed inset-0 z-[100] bg-white print:block hidden">
-          <Invoice {...invoiceData} />
+          <Invoice {...invoiceData} onClose={() => setShowInvoice(false)} />
         </div>
       )}
     </div>
