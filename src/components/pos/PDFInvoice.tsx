@@ -150,13 +150,13 @@ interface PDFInvoiceProps {
 }
 
 export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
-    items,
-    subtotal,
-    tax,
-    grandTotal,
-    invoiceNumber,
-    date,
-    settings,
+    items = [],
+    subtotal = 0,
+    tax = 0,
+    grandTotal = 0,
+    invoiceNumber = 'N/A',
+    date = new Date(),
+    settings = {},
     paymentMethod,
     customerName,
     amountReceived,
@@ -166,9 +166,11 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
         <Page size="A4" style={styles.page}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title}>{settings.name || 'Store Name'}</Text>
-                <Text style={styles.shopInfo}>{settings.address || 'Address'}</Text>
-                <Text style={styles.shopInfo}>Phone: {settings.phone || 'N/A'} | PAN: {settings.pan || 'N/A'}</Text>
+                <Text style={styles.title}>{String(settings?.name || 'VISHMA POS')}</Text>
+                <Text style={styles.shopInfo}>{String(settings?.address || '')}</Text>
+                <Text style={styles.shopInfo}>
+                    {`Phone: ${settings?.phone || 'N/A'} | PAN: ${settings?.pan || 'N/A'}`}
+                </Text>
             </View>
 
             <View style={styles.divider} />
@@ -177,18 +179,20 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
             <View style={styles.invoiceMeta}>
                 <View style={styles.metaLeft}>
                     <Text style={styles.metaLabel}>BILL TO</Text>
-                    <Text style={styles.metaValue}>{customerName || 'Walk-in Customer'}</Text>
+                    <Text style={styles.metaValue}>{String(customerName || 'Walk-in Customer')}</Text>
                 </View>
                 <View style={styles.metaRight}>
                     <Text style={styles.metaLabel}>INVOICE NO</Text>
-                    <Text style={styles.metaValue}>{invoiceNumber}</Text>
+                    <Text style={styles.metaValue}>{String(invoiceNumber)}</Text>
                     <Text style={[styles.metaLabel, { marginTop: 5 }]}>DATE</Text>
-                    <Text style={{ fontSize: 9 }}>{format(date, 'MMM dd, yyyy HH:mm')}</Text>
+                    <Text style={{ fontSize: 9 }}>
+                        {format(date instanceof Date ? date : new Date(date), 'MMM dd, yyyy HH:mm')}
+                    </Text>
                 </View>
             </View>
 
             {/* Table */}
-            <View style={styles.table}>
+            <View style={[styles.table, { width: '100%' }]}>
                 <View style={[styles.tableRow, styles.tableHeader]}>
                     <View style={styles.tableColIndex}><Text style={styles.tableCell}>#</Text></View>
                     <View style={styles.tableColDesc}><Text style={styles.tableCell}>Item</Text></View>
@@ -197,12 +201,12 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
                     <View style={styles.tableColAmount}><Text style={styles.tableCell}>Amount</Text></View>
                 </View>
                 {items.map((item, index) => (
-                    <View style={styles.tableRow} key={item.id}>
+                    <View style={styles.tableRow} key={item.id || index}>
                         <View style={styles.tableColIndex}><Text style={styles.tableCell}>{index + 1}</Text></View>
-                        <View style={styles.tableColDesc}><Text style={styles.tableCell}>{item.name}</Text></View>
-                        <View style={styles.tableColRate}><Text style={styles.tableCell}>{item.price.toLocaleString()}</Text></View>
-                        <View style={styles.tableColQty}><Text style={styles.tableCell}>{item.quantity}</Text></View>
-                        <View style={styles.tableColAmount}><Text style={styles.tableCell}>{(item.price * item.quantity).toLocaleString()}</Text></View>
+                        <View style={styles.tableColDesc}><Text style={styles.tableCell}>{String(item.name)}</Text></View>
+                        <View style={styles.tableColRate}><Text style={styles.tableCell}>{Number(item.price).toFixed(2)}</Text></View>
+                        <View style={styles.tableColQty}><Text style={styles.tableCell}>{String(item.quantity)}</Text></View>
+                        <View style={styles.tableColAmount}><Text style={styles.tableCell}>{(item.price * item.quantity).toFixed(2)}</Text></View>
                     </View>
                 ))}
             </View>
@@ -211,43 +215,47 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
             <View style={styles.summarySection}>
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Subtotal:</Text>
-                    <Text style={styles.summaryValue}>{subtotal.toLocaleString()}</Text>
+                    <Text style={styles.summaryValue}>{Number(subtotal).toFixed(2)}</Text>
                 </View>
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Tax:</Text>
-                    <Text style={styles.summaryValue}>{tax.toLocaleString()}</Text>
+                    <Text style={styles.summaryValue}>{Number(tax).toFixed(2)}</Text>
                 </View>
                 <View style={styles.totalRow}>
                     <Text style={[styles.summaryLabel, { fontWeight: 'bold', fontSize: 12 }]}>TOTAL:</Text>
-                    <Text style={[styles.summaryValue, { fontSize: 12 }]}>{grandTotal.toLocaleString()}</Text>
+                    <Text style={[styles.summaryValue, { fontSize: 12 }]}>{Number(grandTotal).toFixed(2)}</Text>
                 </View>
 
-                {amountReceived ? (
+                {amountReceived !== undefined && (
                     <View style={[styles.summaryRow, { marginTop: 5 }]}>
                         <Text style={[styles.summaryLabel, { fontSize: 9 }]}>Cash Received:</Text>
-                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{amountReceived.toLocaleString()}</Text>
+                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{Number(amountReceived).toFixed(2)}</Text>
                     </View>
-                ) : null}
+                )}
 
-                {change ? (
+                {change !== undefined && change > 0 && (
                     <View style={styles.summaryRow}>
                         <Text style={[styles.summaryLabel, { fontSize: 9 }]}>Change:</Text>
-                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{change.toLocaleString()}</Text>
+                        <Text style={[styles.summaryValue, { fontSize: 9 }]}>{Number(change).toFixed(2)}</Text>
                     </View>
-                ) : null}
+                )}
 
-                {paymentMethod ? (
+                {paymentMethod && (
                     <View style={[styles.summaryRow, { marginTop: 5 }]}>
                         <Text style={[styles.summaryLabel, { fontSize: 8, fontStyle: 'italic' }]}>Paid via:</Text>
-                        <Text style={[styles.summaryValue, { fontSize: 8, fontStyle: 'italic', textTransform: 'capitalize' }]}>{paymentMethod}</Text>
+                        <Text style={[styles.summaryValue, { fontSize: 8, fontStyle: 'italic', textTransform: 'capitalize' }]}>
+                            {String(paymentMethod)}
+                        </Text>
                     </View>
-                ) : null}
+                )}
             </View>
 
             {/* Footer */}
             <View style={{ position: 'absolute', bottom: 30, left: 0, right: 0 }}>
                 <View style={styles.footer}>
-                    <Text style={styles.footerMessage}>{settings.footerMessage || settings.receipt?.footer || 'Thank you for shopping!'}</Text>
+                    <Text style={styles.footerMessage}>
+                        {String(settings?.footerMessage || settings?.receipt?.footer || 'Thank you for shopping!')}
+                    </Text>
                     <Text>Generated by Vishma POS</Text>
                 </View>
             </View>
