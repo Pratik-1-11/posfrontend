@@ -213,6 +213,7 @@ export const PosScreen: React.FC = () => {
         amountReceived,
         change: amountReceived > grandTotal ? (amountReceived - grandTotal) : 0,
         customerName: selectedCustomer?.name,
+        customerPan: selectedCustomer?.panNumber,
         customer: selectedCustomer,
       };
 

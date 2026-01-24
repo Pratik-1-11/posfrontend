@@ -8,6 +8,7 @@ interface StoreSettings {
     phone: string;
     email: string;
     pan: string;
+    pan_number?: string;
     footerMessage: string;
     taxRate: number;
     currency: string;
@@ -96,6 +97,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                         phone: dbSettings.phone,
                         email: dbSettings.email,
                         pan: dbSettings.pan,
+                        pan_number: dbSettings.pan_number || dbSettings.pan,
                         footerMessage: dbSettings.footer_message,
                         taxRate: Number(dbSettings.tax_rate),
                         currency: dbSettings.currency,

@@ -18,7 +18,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onClose, o
         email: '',
         address: '',
         isActive: true,
-        creditLimit: 0
+        creditLimit: 0,
+        panNumber: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
@@ -31,7 +32,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onClose, o
                 email: customer.email || '',
                 address: customer.address || '',
                 isActive: customer.isActive,
-                creditLimit: customer.creditLimit || 0
+                creditLimit: customer.creditLimit || 0,
+                panNumber: customer.panNumber || ''
             });
         }
     }, [customer]);
@@ -103,6 +105,15 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onClose, o
                             placeholder="Max credit allowed (0 = No Credit)"
                             value={formData.creditLimit}
                             onChange={e => setFormData({ ...formData, creditLimit: Number(e.target.value) })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Customer PAN (Optional)</label>
+                        <input
+                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                            placeholder="9 digit PAN number"
+                            value={formData.panNumber}
+                            onChange={e => setFormData({ ...formData, panNumber: e.target.value })}
                         />
                     </div>
                     <div>

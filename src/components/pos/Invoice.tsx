@@ -26,6 +26,7 @@ interface InvoiceProps {
   paymentMethod?: string;
   paymentDetails?: Record<string, number>;
   customerName?: string;
+  customerPan?: string;
   amountReceived?: number;
   change?: number;
   previousDue?: number;
@@ -42,6 +43,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
   paymentMethod,
   paymentDetails,
   customerName,
+  customerPan,
   amountReceived,
   change,
   previousDue,
@@ -212,6 +214,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
                 settings={settings}
                 paymentMethod={paymentMethod}
                 customerName={customerName}
+                customerPan={customerPan}
                 amountReceived={amountReceived}
                 change={change}
               />
@@ -243,7 +246,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
           <h1 className="text-xl font-bold uppercase tracking-tight">{settings.name}</h1>
           <p className="text-[10px]">{settings.address}</p>
           <p className="text-[10px]">Tel: {settings.phone}</p>
-          <p className="text-[10px]">PAN: {settings.pan}</p>
+          <p className="text-[10px]">PAN/VAT: {settings.pan || settings.pan_number}</p>
           <div className="border-b border-dashed border-black my-2"></div>
         </div>
 
@@ -253,7 +256,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
             <h1 className="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">{settings.name}</h1>
             <p className="text-slate-500 font-medium">{settings.address}</p>
             <p className="text-slate-500 font-medium">Phone: {settings.phone}</p>
-            <p className="text-slate-500 font-medium">PAN: {settings.pan}</p>
+            <p className="text-slate-500 font-medium">PAN/VAT: {settings.pan || settings.pan_number}</p>
           </div>
           <div className="text-right">
             <h2 className="text-2xl font-bold text-blue-600">INVOICE</h2>
@@ -281,6 +284,11 @@ export const Invoice: React.FC<InvoiceProps> = ({
             <div className="print:mb-1">
               <span className="font-semibold text-gray-700 print:font-normal">Bill To: </span>
               <span className="font-medium tracking-tight uppercase truncate">{customerName || 'Walk-in Customer'}</span>
+              {customerPan && (
+                <div className="text-[10px] text-slate-500 font-mono mt-0.5 print:text-[10px] print:text-black">
+                  PAN: {customerPan}
+                </div>
+              )}
             </div>
           </div>
         </div>

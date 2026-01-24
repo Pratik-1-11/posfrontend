@@ -11,6 +11,7 @@ export type Customer = {
     isActive: boolean;
     createdDate: Date;
     lastPurchaseDate?: Date;
+    panNumber?: string;
 };
 
 export type CreditSale = {

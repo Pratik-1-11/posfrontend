@@ -144,6 +144,7 @@ interface PDFInvoiceProps {
     settings: any;
     paymentMethod?: string;
     customerName?: string;
+    customerPan?: string;
     amountReceived?: number;
     change?: number;
 }
@@ -158,6 +159,7 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
     settings = {},
     paymentMethod,
     customerName,
+    customerPan,
     amountReceived,
     change,
 }) => (
@@ -166,9 +168,10 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.title}>{String(settings?.name || 'VISHMA POS')}</Text>
+                {/* Store PAN is already should be in settings.pan */}
                 <Text style={styles.shopInfo}>{String(settings?.address || '')}</Text>
                 <Text style={styles.shopInfo}>
-                    {`Phone: ${settings?.phone || 'N/A'} | PAN: ${settings?.pan || 'N/A'}`}
+                    {`Phone: ${settings?.phone || 'N/A'} | PAN/VAT: ${settings?.pan || settings?.pan_number || 'N/A'}`}
                 </Text>
             </View>
 
@@ -179,6 +182,7 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
                 <View style={styles.metaLeft}>
                     <Text style={styles.metaLabel}>BILL TO</Text>
                     <Text style={styles.metaValue}>{String(customerName || 'Walk-in Customer')}</Text>
+                    {customerPan && <Text style={[styles.metaLabel, { marginTop: 2 }]}>PAN: {customerPan}</Text>}
                 </View>
                 <View style={styles.metaRight}>
                     <Text style={styles.metaLabel}>INVOICE NO</Text>
