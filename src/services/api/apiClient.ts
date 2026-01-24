@@ -2,7 +2,7 @@ const TOKEN_KEY = 'pos_access_token';
 
 const getBaseUrl = () => {
   const url = import.meta.env.VITE_API_URL as string | undefined;
-  return (url && url.length > 0 ? url : 'http://localhost:5000').replace(/\/$/, '');
+  return (url && url.length > 0 ? url : 'https://posbackend-production-438a.up.railway.app').replace(/\/$/, '');
 };
 
 export const tokenStorage = {
