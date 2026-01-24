@@ -68,10 +68,44 @@ export const PosScreen: React.FC = () => {
   const { heldBills, holdCurrentBill, retrieveBill, deleteBill } = useHoldBill();
 
   // Memoized values
-  const categories = useMemo(() =>
-    ['All', ...new Set(products.map(p => p.category))],
-    [products]
-  );
+  const categories = useMemo(() => {
+    const exhaustiveCategories = [
+      'All',
+      'Beverages',
+      'Snacks & Biscuits',
+      'Dairy & Eggs',
+      'Bakery & Bread',
+      'Fruits & Vegetables',
+      'Meat & Poultry',
+      'Seafood',
+      'Frozen Foods',
+      'Canned & Jarred Goods',
+      'Grains & Staples (Rice/Dal)',
+      'Oil & Ghee',
+      'Breakfast & Cereal',
+      'Spices & Masalas',
+      'Salt, Sugar & Baking',
+      'Sweets & Chocolates',
+      'Baby Care',
+      'Personal Care & Beauty',
+      'Health & Pharmacy',
+      'Household & Cleaning',
+      'Pet Care',
+      'Electronics & Accessories',
+      'Stationery & Office',
+      'Tobacco & Lighter',
+      'Liquor & Alcohol',
+      'Home & Kitchen',
+      'Clothing & Accessories',
+      'Other'
+    ];
+
+    // Filter to only show 'All' and categories that actually have products in the system
+    // Or just show all if the user wants to see the empty ones. 
+    // Usually, showing only populated categories is better UX.
+    const populated = new Set(products.map(p => p.category));
+    return exhaustiveCategories.filter(cat => cat === 'All' || populated.has(cat));
+  }, [products]);
 
   const { subtotal, tax, total: grandTotal } = useMemo(() =>
     calculateOrderTotals(cartItems),
