@@ -218,7 +218,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
             }
             fileName={`invoice-${invoiceNumber}.pdf`}
           >
-            {({ blob, url, loading, error }) => (
+            {({ loading }) => (
               <Button variant="outline" size="sm" disabled={loading}>
                 <Download className="mr-2 h-4 w-4" />
                 {loading ? 'Generating...' : 'Download PDF'}
