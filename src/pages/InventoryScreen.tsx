@@ -33,7 +33,35 @@ export const InventoryScreen: React.FC = () => {
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
-  const [productCategories, setProductCategories] = useState<string[]>(['Beverages', 'Snacks', 'Dairy', 'Bakery', 'Fruits', 'Vegetables', 'Meat', 'Seafood', 'Frozen Foods', 'Canned Goods', 'Dry Goods', 'Personal Care', 'Household', 'Other']);
+  const [productCategories, setProductCategories] = useState<string[]>([
+    'Beverages',
+    'Snacks & Biscuits',
+    'Dairy & Eggs',
+    'Bakery & Bread',
+    'Fruits & Vegetables',
+    'Meat & Poultry',
+    'Seafood',
+    'Frozen Foods',
+    'Canned & Jarred Goods',
+    'Grains & Staples (Rice/Dal)',
+    'Oil & Ghee',
+    'Breakfast & Cereal',
+    'Spices & Masalas',
+    'Salt, Sugar & Baking',
+    'Sweets & Chocolates',
+    'Baby Care',
+    'Personal Care & Beauty',
+    'Health & Pharmacy',
+    'Household & Cleaning',
+    'Pet Care',
+    'Electronics & Accessories',
+    'Stationery & Office',
+    'Tobacco & Lighter',
+    'Liquor & Alcohol',
+    'Home & Kitchen',
+    'Clothing & Accessories',
+    'Other'
+  ]);
 
   React.useEffect(() => {
     productApi.getCategories().then((cats: string[]) => {
