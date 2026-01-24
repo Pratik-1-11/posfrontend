@@ -195,7 +195,8 @@ export const PosScreen: React.FC = () => {
         taxAmount: tax,
         paymentMethod: method,
         paymentDetails,
-        customerId: selectedCustomer?.id
+        customerId: selectedCustomer?.id,
+        customerPan: selectedCustomer?.panNumber
       });
 
       await refresh(); // Refresh products (stock)

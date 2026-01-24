@@ -14,6 +14,7 @@ export type CreateOrderPayload = {
   paymentDetails?: Record<string, number>;
   customerName?: string;
   customerId?: string;
+  customerPan?: string;
 };
 
 const mapToBackendPaymentMethod = (pm: PaymentMethod): string => {
@@ -57,6 +58,7 @@ export const orderApi = {
       paymentDetails: payload.paymentDetails,
       customerName: payload.customerName ?? '',
       customerId: payload.customerId,
+      customerPan: payload.customerPan,
       idempotencyKey
     };
 
