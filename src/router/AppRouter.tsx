@@ -13,6 +13,7 @@ import { CustomersScreen } from '@/pages/CustomersScreen';
 import { EmployeesScreen } from '@/pages/EmployeesScreen';
 import { CreditRecoveryScreen } from '@/pages/CreditRecoveryScreen';
 import { VatReportScreen } from '@/pages/VatReportScreen';
+import { ReturnsScreen } from '@/pages/ReturnsScreen';
 import TenantListPage from '@/pages/admin/tenants/TenantListPage';
 import TenantLayout from '@/pages/admin/tenants/TenantLayout';
 import TenantOverviewPage from '@/pages/admin/tenants/overview/TenantOverviewPage';
@@ -110,6 +111,10 @@ const router = createBrowserRouter([
             {
                 path: "/customers",
                 element: <CustomersScreen />
+            },
+            {
+                path: "/returns",
+                element: <ReturnsScreen />
             },
             {
                 element: <RoleGuard roles={['admin', 'super_admin', 'manager', 'VENDOR_ADMIN', 'vendor_admin']} />,

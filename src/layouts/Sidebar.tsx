@@ -14,6 +14,7 @@ import {
   Building2,
   Terminal,
   Clock,
+  RefreshCw,
   FileSpreadsheet,
   ChevronDown,
   Check
@@ -42,6 +43,7 @@ const navItems = [
   { to: '/customers', icon: Users, label: 'Customers', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER', 'cashier', 'CASHIER'] },
   { to: '/customers/recovery', icon: Clock, label: 'Credit Recovery', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
   { to: '/reports', icon: BarChart2, label: 'Reports', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
+  { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER', 'cashier', 'CASHIER'] },
   { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Report', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
   { to: '/employees', icon: Users, label: 'Employees', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin'] },
   { to: '/settings', icon: Settings, label: 'Settings', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },

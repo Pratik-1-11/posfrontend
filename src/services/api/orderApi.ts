@@ -127,5 +127,12 @@ export const orderApi = {
       { method: 'GET' }
     );
     return res.data.orders;
+  },
+  getOne: async (id: string): Promise<any> => {
+    const res = await apiClient.request<{ status: string, data: { order: any } }>(
+      `/api/orders/${id}`,
+      { method: 'GET' }
+    );
+    return res.data.order;
   }
 };
