@@ -1,130 +1,145 @@
-import React, { useState } from 'react';
-import {
-  Download,
-  Filter,
-  BarChart2,
-  TrendingUp,
-  Calendar,
-  ArrowUp,
-  ArrowDown
-} from 'lucide-react';
-import { exportToCSV, exportToPDF } from '@/utils/export';
-import { SalesTrendChart } from '@/components/reports/SalesTrendChart';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+import { useNavigate } from 'react-router-dom';
+
+export const ReportsScreen: React.FC = () => {
+  const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState('7days');
+  // ... existing state ...
+
+  // ... inside return ...
+  <div className="flex gap-2">
+    {/* Quick Links to Compliance Reports */}
+    <Button variant="ghost" className="gap-2 text-blue-700 font-bold bg-blue-50 border border-blue-100" onClick={() => navigate('/reports/vat')}>
+      <Calendar className="h-4 w-4" /> VAT Sales Book
+    </Button>
+    <Button variant="ghost" className="gap-2 text-emerald-700 font-bold bg-emerald-50 border border-emerald-100" onClick={() => navigate('/reports/purchase-book')}>
+      <Filter className="h-4 w-4" /> VAT Purchase Book
+    </Button>
+    import {
+      Download,
+      Filter,
+      BarChart2,
+      TrendingUp,
+      Calendar,
+      ArrowUp,
+      ArrowDown
+    } from 'lucide-react';
+    import {exportToCSV, exportToPDF} from '@/utils/export';
+    import {SalesTrendChart} from '@/components/reports/SalesTrendChart';
+    import {
+      DropdownMenu,
+      DropdownMenuContent,
+      DropdownMenuItem,
+      DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
-import { format, subDays, parseISO } from 'date-fns';
-import {
-  BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
-import type { PieLabelRenderProps } from 'recharts/types/polar/Pie';
-import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { reportApi } from '@/services/api/reportApi';
-import { apiClient } from '@/services/api/apiClient';
-import { Skeleton } from '@/components/ui/Skeleton';
+    import {Button} from '@/components/ui/Button';
+    import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/Card';
+    import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/Tabs';
+    import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/Select';
+    import {Input} from '@/components/ui/Input';
+    import {format, subDays, parseISO} from 'date-fns';
+    import {
+      BarChart, Bar, PieChart, Pie, Cell,
+      XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
+    } from 'recharts';
+    import type {PieLabelRenderProps} from 'recharts/types/polar/Pie';
+    import {cn} from '@/lib/utils';
+    import {useQuery} from '@tanstack/react-query';
+    import {reportApi} from '@/services/api/reportApi';
+    import {apiClient} from '@/services/api/apiClient';
+    import {Skeleton} from '@/components/ui/Skeleton';
 
 const ReportsSkeleton = () => (
-  <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 min-h-screen">
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-4 w-48" />
+    <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <Skeleton className="h-10 w-40 rounded-lg" />
       </div>
-      <Skeleton className="h-10 w-40 rounded-lg" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-32 rounded-3xl" />
+        ))}
+      </div>
+
+      <Skeleton className="h-[400px] rounded-3xl w-full" />
     </div>
+    );
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {[1, 2, 3, 4].map((i) => (
-        <Skeleton key={i} className="h-32 rounded-3xl" />
-      ))}
-    </div>
-
-    <Skeleton className="h-[400px] rounded-3xl w-full" />
-  </div>
-);
-
-// Chart color scheme
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+    // Chart color scheme
+    const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export const ReportsScreen: React.FC = () => {
   const [dateRange, setDateRange] = useState('7days');
-  const [startDate, setStartDate] = useState(format(subDays(new Date(), 6), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [startDate, setStartDate] = useState(format(subDays(new Date(), 6), 'yyyy-MM-dd'));
+    const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
-  // Fetch all reports
-  const { data: salesData = [], isLoading: salesLoading } = useQuery({
-    queryKey: ['report-sales'],
+    // Fetch all reports
+    const {data: salesData = [], isLoading: salesLoading } = useQuery({
+      queryKey: ['report-sales'],
     queryFn: reportApi.getDailySales
   });
 
-  const { data: productData = [], isLoading: productsLoading } = useQuery({
-    queryKey: ['report-products'],
+    const {data: productData = [], isLoading: productsLoading } = useQuery({
+      queryKey: ['report-products'],
     queryFn: async () => {
-      const res = await apiClient.request<{ status: string, data: { stats: any[] } }>('/api/reports/products');
-      return res.data.stats;
+      const res = await apiClient.request<{ status: string, data: {stats: any[] } }>('/api/reports/products');
+    return res.data.stats;
     },
   });
 
-  const { data: expenseStats = [], isLoading: expensesLoading } = useQuery({
-    queryKey: ['report-expenses'],
+    const {data: expenseStats = [], isLoading: expensesLoading } = useQuery({
+      queryKey: ['report-expenses'],
     queryFn: reportApi.getExpenseSummary
   });
 
-  const { data: purchaseStats = [], isLoading: purchasesLoading } = useQuery({
-    queryKey: ['report-purchases'],
+    const {data: purchaseStats = [], isLoading: purchasesLoading } = useQuery({
+      queryKey: ['report-purchases'],
     queryFn: reportApi.getPurchaseSummary
   });
 
   const handleDateRangeChange = (value: string) => {
-    setDateRange(value);
+      setDateRange(value);
     const today = new Date();
     switch (value) {
       case '7days':
-        setStartDate(format(subDays(today, 6), 'yyyy-MM-dd'));
-        setEndDate(format(today, 'yyyy-MM-dd'));
-        break;
-      case '30days':
-        setStartDate(format(subDays(today, 29), 'yyyy-MM-dd'));
-        setEndDate(format(today, 'yyyy-MM-dd'));
-        break;
-      case '90days':
-        setStartDate(format(subDays(today, 89), 'yyyy-MM-dd'));
-        setEndDate(format(today, 'yyyy-MM-dd'));
-        break;
-      case 'thisMonth':
-        setStartDate(format(new Date(today.getFullYear(), today.getMonth(), 1), 'yyyy-MM-dd'));
-        setEndDate(format(today, 'yyyy-MM-dd'));
-        break;
-      case 'thisYear':
-        setStartDate(format(new Date(today.getFullYear(), 0, 1), 'yyyy-MM-dd'));
-        setEndDate(format(today, 'yyyy-MM-dd'));
-        break;
+    setStartDate(format(subDays(today, 6), 'yyyy-MM-dd'));
+    setEndDate(format(today, 'yyyy-MM-dd'));
+    break;
+    case '30days':
+    setStartDate(format(subDays(today, 29), 'yyyy-MM-dd'));
+    setEndDate(format(today, 'yyyy-MM-dd'));
+    break;
+    case '90days':
+    setStartDate(format(subDays(today, 89), 'yyyy-MM-dd'));
+    setEndDate(format(today, 'yyyy-MM-dd'));
+    break;
+    case 'thisMonth':
+    setStartDate(format(new Date(today.getFullYear(), today.getMonth(), 1), 'yyyy-MM-dd'));
+    setEndDate(format(today, 'yyyy-MM-dd'));
+    break;
+    case 'thisYear':
+    setStartDate(format(new Date(today.getFullYear(), 0, 1), 'yyyy-MM-dd'));
+    setEndDate(format(today, 'yyyy-MM-dd'));
+    break;
     }
   };
 
   const formattedSalesData = salesData.map((item: any) => ({
-    ...item,
-    displayDate: format(parseISO(item.sale_date), 'MMM dd'),
+      ...item,
+      displayDate: format(parseISO(item.sale_date), 'MMM dd'),
     amount: Number(item.total_revenue),
     orders: Number(item.total_transactions)
   }));
 
   const totalSales = formattedSalesData.reduce((sum, item) => sum + item.amount, 0);
   const totalOrders = formattedSalesData.reduce((sum, item) => sum + item.orders, 0);
-  const averageOrderValue = totalSales / (totalOrders || 1);
+    const averageOrderValue = totalSales / (totalOrders || 1);
 
-  // Calculate trends (Simple: compare this half with previous half)
-  const midpoint = Math.floor(formattedSalesData.length / 2);
+    // Calculate trends (Simple: compare this half with previous half)
+    const midpoint = Math.floor(formattedSalesData.length / 2);
   const currentHalfSales = formattedSalesData.slice(midpoint).reduce((sum, item) => sum + item.amount, 0);
   const previousHalfSales = formattedSalesData.slice(0, midpoint).reduce((sum, item) => sum + item.amount, 0);
   const salesTrend = previousHalfSales === 0 ? (currentHalfSales > 0 ? 100 : 0) : Math.round(((currentHalfSales - previousHalfSales) / previousHalfSales) * 100);
@@ -136,18 +151,18 @@ export const ReportsScreen: React.FC = () => {
   // Process Expense Data for Charts
   const totalExpenseAmount = expenseStats.reduce((sum, item: any) => sum + Number(item.total_amount), 0);
   const expenseData = expenseStats.map((item: any) => ({
-    category: item.category,
+      category: item.category,
     amount: Number(item.total_amount),
     percentage: totalExpenseAmount > 0 ? Math.round((Number(item.total_amount) / totalExpenseAmount) * 100) : 0
   }));
 
   const totalPurchases = purchaseStats.reduce((sum, item: any) => sum + Number(item.total_spent), 0);
 
-  if (salesLoading || productsLoading || expensesLoading || purchasesLoading) {
+    if (salesLoading || productsLoading || expensesLoading || purchasesLoading) {
     return <ReportsSkeleton />;
   }
 
-  const ChangeBadge = ({ value, label }: { value: number, label: string }) => (
+    const ChangeBadge = ({value, label}: {value: number, label: string }) => (
     <div className={cn(
       "flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full w-fit",
       value >= 0 ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
@@ -155,7 +170,7 @@ export const ReportsScreen: React.FC = () => {
       {value >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
       {Math.abs(value)}% <span className="text-gray-500 font-medium">{label}</span>
     </div>
-  );
+    );
 
   const handleExport = (type: 'csv' | 'pdf') => {
     if (!salesData.length) return;
@@ -164,23 +179,23 @@ export const ReportsScreen: React.FC = () => {
 
     if (type === 'csv') {
       const csvData = formattedSalesData.map(item => ({
-        Date: item.displayDate,
-        'Revenue (Rs)': item.amount,
-        'Orders': item.orders
+      Date: item.displayDate,
+    'Revenue (Rs)': item.amount,
+    'Orders': item.orders
       }));
-      exportToCSV(csvData, filename);
+    exportToCSV(csvData, filename);
     } else {
       const headers = ['Date', 'Revenue (Rs)', 'Orders'];
       const rows = formattedSalesData.map(item => [
-        item.displayDate,
-        item.amount.toLocaleString(),
-        item.orders.toString()
-      ]);
-      exportToPDF(headers, rows, filename, 'Sales Report');
+    item.displayDate,
+    item.amount.toLocaleString(),
+    item.orders.toString()
+    ]);
+    exportToPDF(headers, rows, filename, 'Sales Report');
     }
   };
 
-  return (
+    return (
     <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -381,7 +396,7 @@ export const ReportsScreen: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
+    );
 };
 
-export default ReportsScreen;
+    export default ReportsScreen;
