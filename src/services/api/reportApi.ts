@@ -71,6 +71,25 @@ export interface VatReportSummary {
     nonTaxableAmount: number;
 }
 
+export interface PurchaseBookItem {
+    date: string;
+    bill_number: string;
+    supplier_name: string;
+    supplier_pan: string;
+    taxable_amount: number;
+    vat_amount: number;
+    non_taxable_amount: number;
+    total_amount: number;
+    total_import_amount?: number;
+}
+
+export interface PurchaseBookSummary {
+    taxableAmount: number;
+    vatAmount: number;
+    nonTaxableAmount: number;
+    totalImports: number;
+}
+
 export const reportApi = {
     getDailySales: async (): Promise<DailySalesStat[]> => {
         const res = await apiClient.request<{ status: string; data: { stats: DailySalesStat[] } }>('/api/reports/daily');
@@ -109,6 +128,11 @@ export const reportApi = {
 
     getVatReport: async (year: number, month: number): Promise<{ report: VatReport[], summary: VatReportSummary }> => {
         const res = await apiClient.request<{ status: string; data: { report: VatReport[], summary: VatReportSummary } }>(`/api/reports/vat?year=${year}&month=${month}`);
+        return res.data;
+    },
+
+    getPurchaseBook: async (year: number, month: number): Promise<{ report: PurchaseBookItem[], summary: PurchaseBookSummary }> => {
+        const res = await apiClient.request<{ status: string; data: { report: PurchaseBookItem[], summary: PurchaseBookSummary } }>(`/api/reports/purchase-book?year=${year}&month=${month}`);
         return res.data;
     },
 
