@@ -3,13 +3,32 @@ import { Plus } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
 import type { Product } from '@/types/product';
 
+import { Skeleton } from '@/components/ui/Skeleton';
+
 interface ProductGridProps {
     products: Product[];
     activeCategory: string;
     searchQuery: string;
     onAddToCart: (product: Product) => void;
     isSidebarCollapsed?: boolean;
+    loading?: boolean;
 }
+
+const GridSkeleton = ({ isSidebarCollapsed }: { isSidebarCollapsed: boolean }) => (
+    <div className={`grid gap-3 md:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 ${isSidebarCollapsed ? 'lg:grid-cols-4' : ''}`}>
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="flex flex-col gap-2 rounded-lg border border-slate-100 bg-white p-4 h-[240px]">
+                <Skeleton className="w-full h-[90px] rounded-md" />
+                <Skeleton className="h-4 w-3/4 mt-2" />
+                <Skeleton className="h-5 w-1/2 mt-1" />
+                <div className="flex justify-between mt-auto">
+                    <Skeleton className="h-5 w-20 rounded" />
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+            </div>
+        ))}
+    </div>
+);
 
 /**
  * ENHANCED PRODUCT GRID FOR TOUCHSCREEN POS
@@ -26,6 +45,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     searchQuery,
     onAddToCart,
     isSidebarCollapsed = false,
+    loading = false,
 }) => {
     const filteredProducts = useMemo(
         () =>
@@ -37,6 +57,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             ),
         [products, searchQuery, activeCategory]
     );
+
+    if (loading) return <GridSkeleton isSidebarCollapsed={isSidebarCollapsed} />;
 
     return (
         <div

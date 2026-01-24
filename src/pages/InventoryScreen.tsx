@@ -19,11 +19,43 @@ import { useToast } from '@/hooks/use-toast';
 
 type ProductStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 
+import { Skeleton } from '@/components/ui/Skeleton';
+
+const InventorySkeleton = () => (
+  <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-4 w-48" />
+      </div>
+      <Skeleton className="h-10 w-32 rounded-lg" />
+    </div>
+
+    <Skeleton className="h-24 rounded-3xl w-full" />
+
+    <div className="bg-white rounded-3xl p-6 space-y-4">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="flex gap-4 items-center border-b pb-4">
+          <Skeleton className="h-12 w-12 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-3 w-1/6" />
+          </div>
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 export const InventoryScreen: React.FC = () => {
   const { user } = useAuth();
   const canManage = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager' || user?.role === 'inventory_manager' || user?.role === 'VENDOR_ADMIN' || user?.role === 'vendor_admin';
-  const { products, addProduct, updateProduct, deleteProduct, refreshProducts } = useProductContext();
+  const { products, addProduct, updateProduct, deleteProduct, refreshProducts, loading } = useProductContext();
   const { toast } = useToast();
+
+  if (loading) return <InventorySkeleton />;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');

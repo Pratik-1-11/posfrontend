@@ -39,7 +39,7 @@ export const PosScreen: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { isSidebarCollapsed } = useLayout();
-  const { products, refresh } = useProductContext();
+  const { products, refresh, loading: productsLoading } = useProductContext();
 
   // Queries
   const { data: reportData, refetch: refetchStats } = useQuery({
@@ -371,6 +371,7 @@ export const PosScreen: React.FC = () => {
           searchQuery={searchQuery}
           onAddToCart={handleAddToCart}
           isSidebarCollapsed={isSidebarCollapsed}
+          loading={productsLoading}
         />
       </main>
 

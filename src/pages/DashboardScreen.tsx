@@ -8,9 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 import { reportApi } from '@/services/api/reportApi';
 import { useProductContext } from '@/context/ProductContext';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { orderApi } from '@/services/api/orderApi';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 
 const RecentTransactions = ({ transactions, navigate }: { transactions: any[], navigate: (path: string) => void }) => (
@@ -90,6 +90,32 @@ const QuickActions = ({ navigate }: { navigate: (path: string) => void }) => {
     );
 };
 
+
+const DashboardSkeleton = () => (
+    <div className="p-6 md:p-8 space-y-8 max-w-[1400px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-2">
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-4 w-40" />
+            </div>
+            <Skeleton className="h-10 w-32 rounded-lg" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-32 rounded-3xl" />
+            ))}
+        </div>
+
+        <Skeleton className="h-32 rounded-3xl w-full" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Skeleton className="h-[400px] rounded-3xl" />
+            <Skeleton className="h-[400px] rounded-3xl" />
+        </div>
+    </div>
+);
+
 const DashboardContent: React.FC = () => {
     const navigate = useNavigate();
     const { products, loading: productsLoading } = useProductContext();
@@ -142,11 +168,7 @@ const DashboardContent: React.FC = () => {
     const totalProducts = products.length;
 
     if (productsLoading || reportsLoading || healthLoading || perfLoading || ordersLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     return (

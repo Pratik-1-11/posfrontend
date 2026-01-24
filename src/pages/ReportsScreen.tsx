@@ -31,7 +31,27 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { reportApi } from '@/services/api/reportApi';
 import { apiClient } from '@/services/api/apiClient';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
+
+const ReportsSkeleton = () => (
+  <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 min-h-screen">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-4 w-48" />
+      </div>
+      <Skeleton className="h-10 w-40 rounded-lg" />
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-32 rounded-3xl" />
+      ))}
+    </div>
+
+    <Skeleton className="h-[400px] rounded-3xl w-full" />
+  </div>
+);
 
 // Chart color scheme
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -53,9 +73,6 @@ export const ReportsScreen: React.FC = () => {
       const res = await apiClient.request<{ status: string, data: { stats: any[] } }>('/api/reports/products');
       return res.data.stats;
     },
-    // Adding a fallback if endpoint doesn't exist yet, or I'll create it.
-    // Wait, I didn't add /api/reports/products to the backend yet.
-    // I added /api/reports/stock and /api/reports/purchases/expenses.
   });
 
   const { data: expenseStats = [], isLoading: expensesLoading } = useQuery({
@@ -95,7 +112,7 @@ export const ReportsScreen: React.FC = () => {
     }
   };
 
-  const formattedSalesData = salesData.map(item => ({
+  const formattedSalesData = salesData.map((item: any) => ({
     ...item,
     displayDate: format(parseISO(item.sale_date), 'MMM dd'),
     amount: Number(item.total_revenue),
@@ -117,22 +134,17 @@ export const ReportsScreen: React.FC = () => {
   const ordersTrend = previousHalfOrders === 0 ? (currentHalfOrders > 0 ? 100 : 0) : Math.round(((currentHalfOrders - previousHalfOrders) / previousHalfOrders) * 100);
 
   // Process Expense Data for Charts
-  const totalExpenseAmount = expenseStats.reduce((sum, item) => sum + Number(item.total_amount), 0);
-  const expenseData = expenseStats.map(item => ({
+  const totalExpenseAmount = expenseStats.reduce((sum, item: any) => sum + Number(item.total_amount), 0);
+  const expenseData = expenseStats.map((item: any) => ({
     category: item.category,
     amount: Number(item.total_amount),
     percentage: totalExpenseAmount > 0 ? Math.round((Number(item.total_amount) / totalExpenseAmount) * 100) : 0
   }));
 
-  const totalPurchases = purchaseStats.reduce((sum, item) => sum + Number(item.total_spent), 0);
+  const totalPurchases = purchaseStats.reduce((sum, item: any) => sum + Number(item.total_spent), 0);
 
   if (salesLoading || productsLoading || expensesLoading || purchasesLoading) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-3 font-bold text-slate-500">Generating Reports...</span>
-      </div>
-    );
+    return <ReportsSkeleton />;
   }
 
   const ChangeBadge = ({ value, label }: { value: number, label: string }) => (

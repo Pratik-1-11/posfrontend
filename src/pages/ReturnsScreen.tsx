@@ -12,6 +12,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderApi } from '@/services/api/orderApi';
 import { returnApi } from '@/services/api/returnApi';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -161,8 +162,15 @@ export const ReturnsScreen: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         {returnsLoading ? (
-                            <div className="flex justify-center p-12">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <div className="space-y-4">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <div key={i} className="flex gap-4 items-center">
+                                        <Skeleton className="h-4 w-1/4" />
+                                        <Skeleton className="h-4 w-1/4" />
+                                        <Skeleton className="h-4 w-1/4" />
+                                        <Skeleton className="h-4 w-1/4" />
+                                    </div>
+                                ))}
                             </div>
                         ) : returns.length > 0 ? (
                             <div className="overflow-x-auto">
@@ -184,9 +192,9 @@ export const ReturnsScreen: React.FC = () => {
                                                 <td className="p-4 font-black text-xs text-primary">{ret.sales?.invoice_number || 'N/A'}</td>
                                                 <td className="p-4 font-bold text-sm text-slate-600">{ret.sales?.customer_name || 'Walk-in'}</td>
                                                 <td className="p-4 font-medium text-xs text-slate-500">
-                                                  <span className="px-2 py-1 bg-slate-100 rounded-md border border-slate-200 uppercase tracking-tighter font-black text-[10px]">
-                                                    {ret.reason || 'No Reason'}
-                                                  </span>
+                                                    <span className="px-2 py-1 bg-slate-100 rounded-md border border-slate-200 uppercase tracking-tighter font-black text-[10px]">
+                                                        {ret.reason || 'No Reason'}
+                                                    </span>
                                                 </td>
                                                 <td className="p-4 font-black text-sm text-right text-emerald-600">Rs.{Number(ret.total_refund_amount).toLocaleString()}</td>
                                                 <td className="p-4">
