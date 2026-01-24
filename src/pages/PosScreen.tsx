@@ -318,11 +318,11 @@ export const PosScreen: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
           <Card className="border-none shadow-sm bg-white p-2">
             <ProductSearch onSearch={setSearchQuery} />
           </Card>
-          <div className="flex items-center gap-2">
+          <div className="w-full">
             <CategoryFilter
               categories={categories}
               activeCategory={activeCategory}
