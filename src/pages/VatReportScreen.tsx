@@ -216,7 +216,7 @@ export const VatReportScreen: React.FC = () => {
                 <CardHeader className="bg-slate-900 py-4">
                     <CardTitle className="text-white text-sm font-black flex items-center gap-2">
                         <CheckCircle2 size={16} className="text-emerald-400" />
-                        SALES PURCHASE BOOK BREAKDOWN
+                        SALES BOOK (OUTPUT VAT)
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
