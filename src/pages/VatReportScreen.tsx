@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/Button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export const VatReportScreen: React.FC = () => {
     const today = new Date();
@@ -57,15 +58,32 @@ export const VatReportScreen: React.FC = () => {
     const exportToCSV = () => {
         if (!vatData?.report || vatData.report.length === 0) return;
 
-        const headers = ["Date", "Invoice #", "Customer", "Taxable Amount", "VAT (13%)", "Non-Taxable", "Total"];
-        const rows = vatData.report.map(r => [
-            format(parseISO(r.created_at), 'yyyy-MM-dd'),
+        const headers = [
+            "Date",
+            "Invoice No",
+            "Invoice Type",
+            "Customer Name",
+            "Customer PAN",
+            "Taxable Amount",
+            "VAT Amount",
+            "Non-taxable Amount",
+            "Total Amount",
+            "Payment Mode",
+            "Cashier"
+        ];
+
+        const rows = vatData.report.map((r: any) => [
+            format(parseISO(r.date || r.created_at), 'yyyy-MM-dd'),
             r.invoice_number,
+            r.invoice_type || 'tax-invoice',
             r.customer_name || 'Walk-in',
+            r.customer_pan || 'N/A',
             r.taxable_amount,
             r.vat_amount,
-            (Number(r.total_amount) - Number(r.taxable_amount) - Number(r.vat_amount)).toFixed(2),
-            r.total_amount
+            r.non_taxable_amount || (Number(r.total_amount) - Number(r.taxable_amount) - Number(r.vat_amount)).toFixed(2),
+            r.total_amount,
+            r.payment_method || 'N/A',
+            r.cashier_name || 'N/A'
         ]);
 
         const csvContent = "data:text/csv;charset=utf-8,"
@@ -214,10 +232,10 @@ export const VatReportScreen: React.FC = () => {
                                     <TableRow>
                                         <TableHead className="font-black text-[10px] uppercase text-slate-500">Date</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase text-slate-500">Invoice #</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase text-slate-500">Type</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase text-slate-500">Customer / PAN</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase text-slate-500 text-right">Taxable</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase text-slate-500 text-right">VAT (13%)</TableHead>
-                                        <TableHead className="font-black text-[10px] uppercase text-slate-500 text-right">Non-Taxable</TableHead>
                                         <TableHead className="font-black text-[10px] uppercase text-slate-500 text-right">Total</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -229,25 +247,33 @@ export const VatReportScreen: React.FC = () => {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        vatData?.report?.map((r) => (
+                                        vatData?.report?.map((r: any) => (
                                             <TableRow key={r.invoice_number} className="hover:bg-slate-50 transition-colors border-b border-slate-100">
                                                 <TableCell className="font-bold text-slate-600 text-xs">
-                                                    {format(parseISO(r.created_at), 'MMM dd, yyyy')}
+                                                    {format(parseISO(r.date || r.created_at), 'MMM dd, yyyy')}
                                                 </TableCell>
                                                 <TableCell className="font-black text-slate-900 text-xs">
                                                     {r.invoice_number}
                                                 </TableCell>
-                                                <TableCell className="font-semibold text-slate-500 text-xs italic">
-                                                    {r.customer_name || 'Walk-in'}
+                                                <TableCell>
+                                                    <span className={cn(
+                                                        "text-[9px] font-black uppercase px-2 py-0.5 rounded-full border",
+                                                        r.invoice_type === 'credit-note' ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100"
+                                                    )}>
+                                                        {r.invoice_type || 'sale'}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="font-semibold text-slate-500 text-xs">
+                                                    <div className="flex flex-col">
+                                                        <span>{r.customer_name || 'Walk-in'}</span>
+                                                        {r.customer_pan && <span className="text-[10px] text-slate-400 font-mono italic">PAN: {r.customer_pan}</span>}
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="text-right font-black text-slate-700 text-xs">
                                                     {formatCurrency(r.taxable_amount)}
                                                 </TableCell>
                                                 <TableCell className="text-right font-black text-blue-600 text-xs">
                                                     {formatCurrency(r.vat_amount)}
-                                                </TableCell>
-                                                <TableCell className="text-right font-black text-slate-700 text-xs">
-                                                    {formatCurrency(Number(r.total_amount) - Number(r.taxable_amount) - Number(r.vat_amount))}
                                                 </TableCell>
                                                 <TableCell className="text-right font-black text-slate-900 text-xs">
                                                     {formatCurrency(r.total_amount)}
