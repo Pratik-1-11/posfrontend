@@ -172,6 +172,7 @@ export const ReturnsScreen: React.FC = () => {
                                             <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date</th>
                                             <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Original Invoice</th>
                                             <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Customer</th>
+                                            <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Reason</th>
                                             <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Refund Amount</th>
                                             <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Action</th>
                                         </tr>
@@ -182,6 +183,11 @@ export const ReturnsScreen: React.FC = () => {
                                                 <td className="p-4 font-bold text-sm">{format(new Date(ret.created_at), 'PPP')}</td>
                                                 <td className="p-4 font-black text-xs text-primary">{ret.sales?.invoice_number || 'N/A'}</td>
                                                 <td className="p-4 font-bold text-sm text-slate-600">{ret.sales?.customer_name || 'Walk-in'}</td>
+                                                <td className="p-4 font-medium text-xs text-slate-500">
+                                                  <span className="px-2 py-1 bg-slate-100 rounded-md border border-slate-200 uppercase tracking-tighter font-black text-[10px]">
+                                                    {ret.reason || 'No Reason'}
+                                                  </span>
+                                                </td>
                                                 <td className="p-4 font-black text-sm text-right text-emerald-600">Rs.{Number(ret.total_refund_amount).toLocaleString()}</td>
                                                 <td className="p-4">
                                                     <Button variant="ghost" size="sm" className="font-bold text-[10px] uppercase">Details</Button>
