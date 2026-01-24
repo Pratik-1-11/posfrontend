@@ -205,10 +205,12 @@ export const CartSection: React.FC<CartSectionProps> = ({
                         <span>Subtotal ({itemCount} items)</span>
                         <span className="text-slate-600 font-black">{formatCurrency(subtotal)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <span>Tax (13%)</span>
-                        <span className="text-slate-600 font-black">{formatCurrency(tax)}</span>
-                    </div>
+                    {tax > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span>Tax</span>
+                            <span className="text-slate-600 font-black">{formatCurrency(tax)}</span>
+                        </div>
+                    )}
                     <div className="h-px bg-slate-200/50 w-full" />
                     <div className="flex justify-between items-center">
                         <span className="text-sm font-black text-slate-800 uppercase tracking-widest">Grand Total</span>

@@ -321,10 +321,12 @@ export const Invoice: React.FC<InvoiceProps> = ({
             <span>Subtotal:</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
-          <div className="flex justify-between py-2 border-b print:py-1 print:border-dashed print:border-black">
-            <span>Tax (10%):</span>
-            <span className="font-medium">{formatCurrency(tax)}</span>
-          </div>
+          {tax > 0 && (
+            <div className="flex justify-between py-2 border-b print:py-1 print:border-dashed print:border-black">
+              <span>Tax:</span>
+              <span className="font-medium">{formatCurrency(tax)}</span>
+            </div>
+          )}
           <div className="flex justify-between py-3 mt-2 text-lg font-bold print:text-sm print:mt-1 border-b border-double border-slate-300 print:border-black">
             <span>Total:</span>
             <span className="text-blue-600 print:text-black">{formatCurrency(grandTotal)}</span>

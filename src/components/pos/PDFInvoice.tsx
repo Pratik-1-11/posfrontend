@@ -217,10 +217,12 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
                     <Text style={styles.summaryLabel}>Subtotal:</Text>
                     <Text style={styles.summaryValue}>{Number(subtotal).toFixed(2)}</Text>
                 </View>
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Tax:</Text>
-                    <Text style={styles.summaryValue}>{Number(tax).toFixed(2)}</Text>
-                </View>
+                {tax > 0 && (
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Tax:</Text>
+                        <Text style={styles.summaryValue}>{Number(tax).toFixed(2)}</Text>
+                    </View>
+                )}
                 <View style={styles.totalRow}>
                     <Text style={[styles.summaryLabel, { fontWeight: 'bold', fontSize: 12 }]}>TOTAL:</Text>
                     <Text style={[styles.summaryValue, { fontSize: 12 }]}>{Number(grandTotal).toFixed(2)}</Text>
