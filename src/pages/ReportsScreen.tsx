@@ -187,21 +187,31 @@ export const ReportsScreen: React.FC = () => {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Reports Overview</h1>
           <p className="text-muted-foreground font-medium">Analyze your business performance and growth metrics.</p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2 font-bold shadow-sm">
-              <Download className="h-4 w-4" /> Export All Data
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleExport('csv')}>
-              Export to CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport('pdf')}>
-              Export to PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          {/* Quick Links to Compliance Reports */}
+          <Button variant="ghost" className="gap-2 text-blue-700 font-bold bg-blue-50 border border-blue-100" onClick={() => window.location.href = '/reports/vat'}>
+            <Calendar className="h-4 w-4" /> VAT Sales Book
+          </Button>
+          <Button variant="ghost" className="gap-2 text-emerald-700 font-bold bg-emerald-50 border border-emerald-100" onClick={() => window.location.href = '/reports/purchase-book'}>
+            <Filter className="h-4 w-4" /> VAT Purchase Book
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 font-bold shadow-sm">
+                <Download className="h-4 w-4" /> Export All Data
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('csv')}>
+                Export to CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                Export to PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <Card className="border-none shadow-sm bg-white/80 backdrop-blur-sm">
