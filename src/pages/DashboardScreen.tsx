@@ -120,25 +120,19 @@ const DashboardContent: React.FC = () => {
     const navigate = useNavigate();
     const { products, loading: productsLoading } = useProductContext();
 
-    const { data: dailySales = [], isLoading: reportsLoading } = useQuery({
-        queryKey: ['dailySales'],
-        queryFn: reportApi.getDailySales,
-    });
-
-    const { data: health, isLoading: healthLoading } = useQuery({
-        queryKey: ['healthOverview'],
-        queryFn: reportApi.getHealthOverview,
-    });
-
-    const { data: performance, isLoading: perfLoading } = useQuery({
-        queryKey: ['performanceAnalytics'],
-        queryFn: reportApi.getPerformanceAnalytics,
+    const { data: summary, isLoading: summaryLoading } = useQuery({
+        queryKey: ['dashboardSummary'],
+        queryFn: reportApi.getSummary,
     });
 
     const { data: recentOrders = [], isLoading: ordersLoading } = useQuery({
         queryKey: ['recentOrders'],
         queryFn: () => orderApi.getAll(),
     });
+
+    const dailySales = summary?.dailySales || [];
+    const health = summary?.health;
+    const performance = summary?.performance;
 
     // Calculate metrics
     const today = new Date().toISOString().split('T')[0];
@@ -167,7 +161,7 @@ const DashboardContent: React.FC = () => {
 
     const totalProducts = products.length;
 
-    if (productsLoading || reportsLoading || healthLoading || perfLoading || ordersLoading) {
+    if (productsLoading || summaryLoading || ordersLoading) {
         return <DashboardSkeleton />;
     }
 

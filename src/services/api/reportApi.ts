@@ -110,5 +110,14 @@ export const reportApi = {
     getVatReport: async (year: number, month: number): Promise<{ report: VatReport[], summary: VatReportSummary }> => {
         const res = await apiClient.request<{ status: string; data: { report: VatReport[], summary: VatReportSummary } }>(`/api/reports/vat?year=${year}&month=${month}`);
         return res.data;
+    },
+
+    getSummary: async (): Promise<{
+        dailySales: DailySalesStat[];
+        health: HealthOverview;
+        performance: PerformanceAnalytics
+    }> => {
+        const res = await apiClient.request<{ status: string; data: any }>('/api/reports/summary');
+        return res.data;
     }
 };

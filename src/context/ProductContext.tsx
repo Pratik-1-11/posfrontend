@@ -24,43 +24,53 @@ const PRODUCTS_QUERY_KEY = ['products'];
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
 
-  // 1. Load from localStorage if available (Instant Load)
-  const getStoredProducts = (): Product[] | undefined => {
+  // 1. Initial Load: Synchronous localStorage check for instant first-paint
+  const initialProducts = (() => {
     try {
       const stored = localStorage.getItem('pos_products_cache');
       return stored ? JSON.parse(stored) : undefined;
-    } catch (e) {
-      console.warn('Failed to parse stored products', e);
+    } catch {
       return undefined;
     }
-  };
+  })();
 
   const {
-    data: products = [],
+    data: products = initialProducts || [],
     isLoading,
   } = useQuery<Product[]>({
     queryKey: PRODUCTS_QUERY_KEY,
     queryFn: productApi.getAll,
-    initialData: getStoredProducts, // Use cached data immediately
-    staleTime: 5 * 60 * 1000, // 5 minutes (don't refetch instantly if fresh)
-    gcTime: 24 * 60 * 60 * 1000, // Keep in memory/cache for 24 hours
+    staleTime: 5 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
   });
 
-  // 2. Sync with Local Storage & Dexie (Background Update)
+  // 2. Optimized Background Sync
   useEffect(() => {
-    if (products.length > 0) {
-      // Sync to LocalStorage (Legacy/Fast Init)
-      localStorage.setItem('pos_products_cache', JSON.stringify(products));
+    let timeoutId: NodeJS.Timeout;
 
-      // Sync to Dexie (Offline Database)
-      db.products.clear().then(() => {
-        db.products.bulkPut(products).catch(err => console.error('Failed to sync products to Dexie:', err));
-      });
+    if (products.length > 0) {
+      // Debounce the sync to avoid blocking the UI on rapid changes
+      timeoutId = setTimeout(async () => {
+        try {
+          // Sync with LocalStorage for ultra-fast first-paint (small data only)
+          if (products.length < 500) {
+            localStorage.setItem('pos_products_cache', JSON.stringify(products));
+          }
+
+          // Sync to Dexie (Robust offline DB) - Use bulkPut to update instead of clear+bulkPut
+          await db.products.clear();
+          await db.products.bulkPut(products);
+        } catch (err) {
+          console.error('Background sync failed:', err);
+        }
+      }, 2000); // Wait 2 seconds of inactivity before syncing
     }
+
+    return () => clearTimeout(timeoutId);
   }, [products]);
 
   const getProductById = (id: string) => {
-    return products.find(p => p.id === id);
+    return (products as Product[]).find((p: Product) => p.id === id);
   };
 
   const addProductMutation = useMutation({
