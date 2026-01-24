@@ -13,6 +13,7 @@ import { CustomersScreen } from '@/pages/CustomersScreen';
 import { EmployeesScreen } from '@/pages/EmployeesScreen';
 import { CreditRecoveryScreen } from '@/pages/CreditRecoveryScreen';
 import { VatReportScreen } from '@/pages/VatReportScreen';
+import { PurchaseBookScreen } from '@/pages/PurchaseBookScreen';
 import { ReturnsScreen } from '@/pages/ReturnsScreen';
 import TenantListPage from '@/pages/admin/tenants/TenantListPage';
 import TenantLayout from '@/pages/admin/tenants/TenantLayout';
@@ -142,6 +143,10 @@ const router = createBrowserRouter([
                     {
                         path: "/reports/vat",
                         element: <VatReportScreen />
+                    },
+                    {
+                        path: "/reports/purchase-book",
+                        element: <PurchaseBookScreen />
                     },
                     {
                         path: "/settings",
