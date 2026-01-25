@@ -2,6 +2,8 @@ import React from 'react';
 import {
     ArrowUpRight,
     ArrowDownRight,
+    CheckCircle2,
+    X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -125,4 +127,41 @@ export const HUDSectionTitle: React.FC<{ icon: React.ReactNode; children: React.
         </div>
         <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.1em]">{children}</h3>
     </div>
+);
+export const Switch: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled, onToggle }) => (
+    <button
+        onClick={onToggle}
+        className={cn(
+            "w-12 h-6 rounded-full p-1 transition-all duration-300 relative overflow-hidden",
+            enabled ? 'bg-indigo-600 shadow-inner' : 'bg-slate-200'
+        )}
+    >
+        <div className={cn(
+            "h-4 w-4 bg-white rounded-full shadow-md transition-transform duration-300 transform",
+            enabled ? 'translate-x-6' : 'translate-x-0'
+        )}></div>
+    </button>
+);
+
+export const FeatureToggle: React.FC<{ label: string; enabled: boolean; onToggle: () => void }> = ({ label, enabled, onToggle }) => (
+    <button
+        onClick={onToggle}
+        className={cn(
+            "p-4 rounded-2xl border flex items-center justify-between transition-all duration-300 group",
+            enabled
+                ? 'bg-indigo-600 border-indigo-700 text-white shadow-xl shadow-indigo-500/20'
+                : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-200 hover:bg-slate-50'
+        )}
+    >
+        <div className="flex flex-col items-start gap-0.5 overflow-hidden">
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Control Policy</span>
+            <span className="text-xs font-black uppercase tracking-tight truncate">{label}</span>
+        </div>
+        <div className={cn(
+            "p-1.5 rounded-lg transition-colors",
+            enabled ? "bg-white/20" : "bg-slate-100 group-hover:bg-indigo-50"
+        )}>
+            {enabled ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
+        </div>
+    </button>
 );
