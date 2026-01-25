@@ -98,7 +98,7 @@ const router = createBrowserRouter([
                         ]
                     },
                     { path: "console", element: <SystemConsolePage /> },
-                    { path: "upgrades", element: <UpgradeRequestsPage /> },
+                    { path: "upgrade-requests", element: <UpgradeRequestsPage /> },
                     { path: "subscriptions", element: <SubscriptionPlansPage /> },
                 ]
             },
