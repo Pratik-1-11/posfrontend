@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { FiUpload, FiX, FiLoader } from 'react-icons/fi';
+import { FiUpload, FiX, FiLoader, FiRefreshCw } from 'react-icons/fi';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/types/product';
+import { generateRandomBarcode } from '@/utils/barcodeGenerator';
 
 interface ProductModalProps {
     isOpen: boolean;
@@ -186,8 +187,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="barcode" className="font-semibold">Barcode</Label>
-                                <Input id="barcode" name="barcode" value={formData.barcode} onChange={handleInputChange} placeholder="Scan or type barcode" className="font-mono text-sm" />
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="barcode" className="font-semibold">Barcode</Label>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setFormData(prev => ({ ...prev, barcode: generateRandomBarcode() }))}
+                                        className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                                    >
+                                        <FiRefreshCw className="h-3 w-3" />
+                                        Generate
+                                    </Button>
+                                </div>
+                                <Input id="barcode" name="barcode" value={formData.barcode} onChange={handleInputChange} placeholder="Scan, type, or auto-generate" className="font-mono text-sm" />
                             </div>
 
                             <div className="space-y-2">

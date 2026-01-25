@@ -6,7 +6,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Card, CardContent } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
 import { Badge } from '@/components/ui/Badge';
-import { FiPlus, FiSearch, FiFilter, FiGrid, FiList, FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiGrid, FiList, FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiRefreshCw, FiPrinter } from 'react-icons/fi';
 
 import type { Product } from '@/types/product';
 import { useProductContext } from '@/context/ProductContext';
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 type ProductStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BarcodeLabelDesigner } from '@/components/inventory/BarcodeLabelDesigner';
 
 const InventorySkeleton = () => (
   <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen">
@@ -63,8 +64,11 @@ export const InventoryScreen: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [productsToPrint, setProductsToPrint] = useState<Product[]>([]);
   const [productCategories, setProductCategories] = useState<string[]>([
     'Beverages',
     'Snacks & Biscuits',
@@ -162,6 +166,43 @@ export const InventoryScreen: React.FC = () => {
     setIsAddModalOpen(true);
   };
 
+  const handlePrintBarcode = (product: Product) => {
+    setProductsToPrint([product]);
+    setIsPrintModalOpen(true);
+  };
+
+  const handleBulkPrint = () => {
+    const productsArray = filteredProducts.filter(p => selectedProducts.has(p.id));
+    if (productsArray.length === 0) {
+      toast({
+        title: "No Products Selected",
+        description: "Please select at least one product to print barcodes.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setProductsToPrint(productsArray);
+    setIsPrintModalOpen(true);
+  };
+
+  const toggleProductSelection = (productId: string) => {
+    const newSelection = new Set(selectedProducts);
+    if (newSelection.has(productId)) {
+      newSelection.delete(productId);
+    } else {
+      newSelection.add(productId);
+    }
+    setSelectedProducts(newSelection);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedProducts.size === filteredProducts.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
+    }
+  };
+
 
   const StatusBadge = ({ status }: { status: ProductStatus }) => {
     const variant = status === 'in_stock' ? 'success' : status === 'low_stock' ? 'warning' : 'destructive';
@@ -179,11 +220,18 @@ export const InventoryScreen: React.FC = () => {
           <h1 className="text-4xl font-black tracking-tight text-slate-900 uppercase italic">Inventory</h1>
           <p className="text-slate-500 font-medium">Manage your products and stock levels.</p>
         </div>
-        {canManage && (
-          <Button onClick={handleAddClick} className="gap-2 shadow-xl shadow-primary/20 font-black uppercase tracking-widest px-8">
-            <FiPlus className="h-5 w-5" /> Add Product
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canManage && selectedProducts.size > 0 && (
+            <Button onClick={handleBulkPrint} variant="outline" className="gap-2 font-black uppercase tracking-widest px-6">
+              <FiPrinter className="h-5 w-5" /> Print Selected ({selectedProducts.size})
+            </Button>
+          )}
+          {canManage && (
+            <Button onClick={handleAddClick} className="gap-2 shadow-xl shadow-primary/20 font-black uppercase tracking-widest px-8">
+              <FiPlus className="h-5 w-5" /> Add Product
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden">
@@ -253,128 +301,138 @@ export const InventoryScreen: React.FC = () => {
         </CardContent>
       </Card>
 
-      {viewMode === 'table' ? (
-        <Card className="overflow-hidden border-none shadow-2xl rounded-3xl bg-white shadow-slate-200">
-          <Table>
-            <TableHeader className="bg-slate-50/50">
-              <TableRow className="border-slate-100 hover:bg-transparent">
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">Product</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">Barcode</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">In Stock</TableHead>
-                {canManage && <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">Cost</TableHead>}
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4 text-right">Selling Price</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4 text-center">Status</TableHead>
-                {canManage && <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4 text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-4">
-                      {product.image ? (
-                        <div className="h-12 w-12 rounded-xl border p-0.5 bg-white shadow-sm overflow-hidden">
-                          <img src={typeof product.image === 'string' ? product.image : undefined} alt={product.name} className="h-full w-full object-cover rounded-lg" />
+      {
+        viewMode === 'table' ? (
+          <Card className="overflow-hidden border-none shadow-2xl rounded-3xl bg-white shadow-slate-200">
+            <Table>
+              <TableHeader className="bg-slate-50/50">
+                <TableRow className="border-slate-100 hover:bg-transparent">
+                  {canManage && <TableHead className="w-12"><input type="checkbox" checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0} onChange={toggleAllSelection} className="h-4 w-4 rounded" /></TableHead>}
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">Product</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">Barcode</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">In Stock</TableHead>
+                  {canManage && <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4">Cost</TableHead>}
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4 text-right">Selling Price</TableHead>
+                  <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4 text-center">Status</TableHead>
+                  {canManage && <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[11px] py-4 text-right">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    {canManage && <TableCell><input type="checkbox" checked={selectedProducts.has(product.id)} onChange={() => toggleProductSelection(product.id)} className="h-4 w-4 rounded" /></TableCell>}
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-4">
+                        {product.image ? (
+                          <div className="h-12 w-12 rounded-xl border p-0.5 bg-white shadow-sm overflow-hidden">
+                            <img src={typeof product.image === 'string' ? product.image : undefined} alt={product.name} className="h-full w-full object-cover rounded-lg" />
+                          </div>
+                        ) : (
+                          <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-300">
+                            <FiPlus size={20} />
+                          </div>
+                        )}
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900">{product.name}</span>
+                          <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">{product.category}</span>
                         </div>
-                      ) : (
-                        <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-300">
-                          <FiPlus size={20} />
-                        </div>
-                      )}
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{product.name}</span>
-                        <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">{product.category}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-[10px] text-slate-500">{product.barcode || '---'}</TableCell>
-                  <TableCell>
-                    <span className={cn("font-black text-lg", product.stock < 10 ? "text-red-500" : "text-slate-900")}>
-                      {product.stock}
-                    </span>
-                  </TableCell>
-                  {canManage && <TableCell className="text-slate-400 font-medium italic">Rs. {product.costPrice.toFixed(0)}</TableCell>}
-                  <TableCell className="text-right">
-                    <span className="font-black text-primary text-lg">Rs. {product.price.toFixed(0)}</span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <StatusBadge status={product.stock === 0 ? 'out_of_stock' : product.stock < 10 ? 'low_stock' : 'in_stock'} />
-                  </TableCell>
-                  {canManage && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" className="h-10 w-10 text-amber-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl" onClick={() => handleAdjustClick(product)} title="Adjust Stock">
-                          <FiRefreshCw className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl" onClick={() => handleEditClick(product)} title="Edit">
-                          <FiEdit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                          onClick={() => handleDeleteProduct(product.id)}
-                          title="Delete"
-                        >
-                          <FiTrash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TableCell>
+                    <TableCell className="font-mono text-[10px] text-slate-500">{product.barcode || '---'}</TableCell>
+                    <TableCell>
+                      <span className={cn("font-black text-lg", product.stock < 10 ? "text-red-500" : "text-slate-900")}>
+                        {product.stock}
+                      </span>
+                    </TableCell>
+                    {canManage && <TableCell className="text-slate-400 font-medium italic">Rs. {product.costPrice.toFixed(0)}</TableCell>}
+                    <TableCell className="text-right">
+                      <span className="font-black text-primary text-lg">Rs. {product.price.toFixed(0)}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <StatusBadge status={product.stock === 0 ? 'out_of_stock' : product.stock < 10 ? 'low_stock' : 'in_stock'} />
+                    </TableCell>
+                    {canManage && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" className="h-10 w-10 text-purple-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl" onClick={() => handlePrintBarcode(product)} title="Print Barcode">
+                            <FiPrinter className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-10 w-10 text-amber-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl" onClick={() => handleAdjustClick(product)} title="Adjust Stock">
+                            <FiRefreshCw className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-10 w-10 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl" onClick={() => handleEditClick(product)} title="Edit">
+                            <FiEdit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                            onClick={() => handleDeleteProduct(product.id)}
+                            title="Delete"
+                          >
+                            <FiTrash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => (
+              <Card key={product.id} className="overflow-hidden border-none shadow-2xl rounded-3xl bg-white hover:translate-y-[-4px] transition-all duration-300">
+                <div className="aspect-[4/3] relative overflow-hidden bg-slate-100 group">
+                  {product.image ? (
+                    <img src={typeof product.image === 'string' ? product.image : undefined} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                      <FiPlus className="h-12 w-12" />
+                    </div>
                   )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden border-none shadow-2xl rounded-3xl bg-white hover:translate-y-[-4px] transition-all duration-300">
-              <div className="aspect-[4/3] relative overflow-hidden bg-slate-100 group">
-                {product.image ? (
-                  <img src={typeof product.image === 'string' ? product.image : undefined} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
-                    <FiPlus className="h-12 w-12" />
+                  <div className="absolute top-3 right-3 opacity-90 backdrop-blur-md">
+                    <StatusBadge status={product.stock === 0 ? 'out_of_stock' : product.stock < 10 ? 'low_stock' : 'in_stock'} />
                   </div>
-                )}
-                <div className="absolute top-3 right-3 opacity-90 backdrop-blur-md">
-                  <StatusBadge status={product.stock === 0 ? 'out_of_stock' : product.stock < 10 ? 'low_stock' : 'in_stock'} />
                 </div>
-              </div>
-              <CardContent className="p-5 space-y-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-primary/70">{product.category}</p>
-                  <h3 className="font-bold text-lg leading-tight truncate text-slate-900">{product.name}</h3>
-                  <p className="text-[10px] text-slate-400 font-mono italic tracking-tighter">{product.barcode || 'NO BARCODE'}</p>
-                </div>
+                <CardContent className="p-5 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary/70">{product.category}</p>
+                    <h3 className="font-bold text-lg leading-tight truncate text-slate-900">{product.name}</h3>
+                    <p className="text-[10px] text-slate-400 font-mono italic tracking-tighter">{product.barcode || 'NO BARCODE'}</p>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="space-y-1 bg-slate-50 p-3 rounded-2xl">
-                    <p className="text-slate-400 text-[9px] uppercase font-black tracking-widest">In Stock</p>
-                    <p className={cn("font-black text-base", product.stock < 10 ? "text-red-500" : "text-slate-900")}>{product.stock}</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="space-y-1 bg-slate-50 p-3 rounded-2xl">
+                      <p className="text-slate-400 text-[9px] uppercase font-black tracking-widest">In Stock</p>
+                      <p className={cn("font-black text-base", product.stock < 10 ? "text-red-500" : "text-slate-900")}>{product.stock}</p>
+                    </div>
+                    <div className="space-y-1 bg-primary/5 p-3 rounded-2xl">
+                      <p className="text-primary/50 text-[9px] uppercase font-black tracking-widest">Price</p>
+                      <p className="font-black text-base text-primary">Rs. {product.price.toFixed(0)}</p>
+                    </div>
                   </div>
-                  <div className="space-y-1 bg-primary/5 p-3 rounded-2xl">
-                    <p className="text-primary/50 text-[9px] uppercase font-black tracking-widest">Price</p>
-                    <p className="font-black text-base text-primary">Rs. {product.price.toFixed(0)}</p>
-                  </div>
-                </div>
 
-                {canManage && (
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-amber-50 hover:text-amber-600 border-slate-100 h-10" onClick={() => handleAdjustClick(product)}>
-                      <FiRefreshCw className="h-3 w-3" /> Adjust
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-blue-50 border-slate-100 h-10" onClick={() => handleEditClick(product)}>
-                      <FiEdit2 className="h-3 w-3" /> Edit
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  {canManage && (
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-purple-50 hover:text-purple-600 border-slate-100 h-10" onClick={() => handlePrintBarcode(product)}>
+                        <FiPrinter className="h-3 w-3" /> Print
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-amber-50 hover:text-amber-600 border-slate-100 h-10" onClick={() => handleAdjustClick(product)}>
+                        <FiRefreshCw className="h-3 w-3" /> Adjust
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-blue-50 border-slate-100 h-10" onClick={() => handleEditClick(product)}>
+                        <FiEdit2 className="h-3 w-3" /> Edit
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )
+      }
 
       {/* Modals */}
       <ProductModal
@@ -391,6 +449,12 @@ export const InventoryScreen: React.FC = () => {
         product={adjustingProduct}
         onSuccess={() => refreshProducts()}
       />
-    </div>
+
+      <BarcodeLabelDesigner
+        isOpen={isPrintModalOpen}
+        onClose={() => { setIsPrintModalOpen(false); setProductsToPrint([]); setSelectedProducts(new Set()); }}
+        products={productsToPrint}
+      />
+    </div >
   );
 };
