@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Users,
     ShoppingCart,
@@ -7,6 +7,8 @@ import {
     Activity,
     AlertCircle,
     Edit2,
+    Shield,
+    ShieldCheck,
 } from 'lucide-react';
 import {
     MiniMetric,
@@ -15,7 +17,6 @@ import {
 import { useTenantContext } from '../TenantContext';
 import { TenantModal } from '@/components/admin/TenantModal';
 import { superAdminApi } from '@/services/api/superAdminApi';
-import { useState } from 'react';
 
 const PLAN_FEATURES: Record<string, { name: string; features: string[]; color: string }> = {
     basic: {
@@ -46,10 +47,18 @@ const TenantOverviewPage: React.FC = () => {
     const { tenant, refresh } = useTenantContext();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // Safety check just in case, though Provider handles it mostly
     if (!tenant) return null;
 
     const plan = PLAN_FEATURES[tenant.subscription_tier] || PLAN_FEATURES.basic;
+
+    const handleVerifyTenant = async () => {
+        try {
+            await superAdminApi.verifyTenant(tenant.id);
+            refresh();
+        } catch (error) {
+            console.error('Verification failed:', error);
+        }
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -65,12 +74,22 @@ const TenantOverviewPage: React.FC = () => {
                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
                         <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center justify-between">
                             <span className="flex items-center gap-2"><Activity className="h-4 w-4 text-indigo-500" /> Resource Consumption</span>
-                            <button
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <Edit2 className="h-3 w-3" /> Edit Profile
-                            </button>
+                            <div className="flex gap-2">
+                                {!tenant.verified && (
+                                    <button
+                                        onClick={handleVerifyTenant}
+                                        className="flex items-center gap-2 px-4 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        <ShieldCheck className="h-3 w-3" /> Verify Tenant
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                >
+                                    <Edit2 className="h-3 w-3" /> Edit Profile
+                                </button>
+                            </div>
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <UsageBar
@@ -84,6 +103,12 @@ const TenantOverviewPage: React.FC = () => {
                                 used={tenant.stats?.products || 0}
                                 limit={tenant.resource_limits?.max_products || 100}
                                 unit="SKUs"
+                            />
+                            <UsageBar
+                                label="Store Branches"
+                                used={tenant.current_stores_count || 0}
+                                limit={tenant.max_stores || 1}
+                                unit="Locations"
                             />
                         </div>
                     </div>
@@ -100,8 +125,19 @@ const TenantOverviewPage: React.FC = () => {
                                     <h4 className="text-3xl font-black text-slate-900 mb-2">{plan.name}</h4>
                                     <p className="text-slate-500 text-sm font-medium">Provisioned on the platform's high-speed nodes.</p>
                                 </div>
-                                <div className={`px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-widest border ${plan.color}`}>
-                                    {tenant.subscription_tier} Tier
+                                <div className="flex flex-col items-end gap-2">
+                                    <div className={`px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-widest border ${plan.color}`}>
+                                        {tenant.subscription_tier} Tier
+                                    </div>
+                                    {tenant.verified ? (
+                                        <div className="flex items-center gap-1.5 text-emerald-600 text-[10px] font-black uppercase tracking-widest">
+                                            <ShieldCheck className="h-3 w-3" /> Verified Business
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1.5 text-amber-600 text-[10px] font-black uppercase tracking-widest">
+                                            <Shield className="h-3 w-3" /> Unverified
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -144,7 +180,7 @@ const TenantOverviewPage: React.FC = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 mode="edit"
                 initialData={tenant}
-                onSubmit={async (data) => {
+                onSubmit={async (data: any) => {
                     await superAdminApi.updateTenant(tenant.id, data);
                     await refresh();
                     setIsEditModalOpen(false);

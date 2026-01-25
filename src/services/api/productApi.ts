@@ -16,22 +16,34 @@ type ProductResponse = {
   };
 };
 
-const mapProduct = (p: any): Product => ({
-  id: p.id,
-  name: p.name,
-  barcode: p.barcode,
-  price: Number(p.selling_price || 0),
-  costPrice: Number(p.cost_price || 0),
-  stock: Number(p.stock_quantity || 0),
-  category: p.categories?.name || p.category || "General",
-  image: p.image_url || p.image,
-  minStockLevel: Number(p.min_stock_level || 5),
-});
+const mapProduct = (p: any): Product => {
+  // If branch_inventory is present, use that quantity, otherwise use global stock
+  let stock = Number(p.stock_quantity || 0);
+  if (p.branch_inventory && Array.isArray(p.branch_inventory) && p.branch_inventory.length > 0) {
+    stock = Number(p.branch_inventory[0].quantity || 0);
+  } else if (p.branch_inventory && typeof p.branch_inventory === 'object') {
+    // Some Supabase responses return a single object instead of array if joined uniquely
+    stock = Number(p.branch_inventory.quantity || 0);
+  }
+
+  return {
+    id: p.id,
+    name: p.name,
+    barcode: p.barcode,
+    price: Number(p.selling_price || 0),
+    costPrice: Number(p.cost_price || 0),
+    stock: stock,
+    category: p.categories?.name || p.category || "General",
+    image: p.image_url || p.image,
+    minStockLevel: Number(p.min_stock_level || 5),
+  };
+};
 
 export const productApi = {
-  getAll: async (): Promise<Product[]> => {
+  getAll: async (branchId?: string): Promise<Product[]> => {
     try {
-      const res = await apiClient.request<ListProductsResponse>("/api/products", { method: "GET" });
+      const path = branchId ? `/api/products?branchId=${branchId}` : "/api/products";
+      const res = await apiClient.request<ListProductsResponse>(path, { method: "GET" });
       return res.data.products.map(mapProduct);
     } catch (error: any) {
       if (!navigator.onLine || error.message === 'Failed to fetch' || error.name === 'TypeError') {
@@ -108,11 +120,11 @@ export const productApi = {
     return true;
   },
 
-  updateStock: async (items: { id: string; quantity: number }[]): Promise<void> => {
-    // Stock updates are usually handled by the backend during order processing.
-    // But if we need manual bulk update, we can implement it here.
-    console.log("Bulk stock update requested for:", items);
-    return;
+  updateStock: async (productId: string, data: { quantity: number; type: 'in' | 'out' | 'adjustment'; reason: string; branchId: string }): Promise<void> => {
+    await apiClient.request(`/api/products/${productId}/adjust-stock`, {
+      method: "POST",
+      json: data
+    });
   },
   getCategories: async (): Promise<string[]> => {
     const res = await apiClient.request<{ status: string, data: { categories: any[] } }>("/api/products/categories");

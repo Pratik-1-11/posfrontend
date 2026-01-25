@@ -92,4 +92,9 @@ export const apiClient = {
   delete<T>(path: string, options?: { params?: Record<string, any> }) {
     return this.request<T>(path, { method: 'DELETE', ...options });
   },
+
+  patch<T>(path: string, body?: unknown, options?: { params?: Record<string, any> }) {
+    return this.request<T>(path, { method: 'PATCH', json: body, ...options });
+  },
 };
+

@@ -32,6 +32,9 @@ export interface Tenant {
         features: string[];
     };
     is_active: boolean;
+    verified?: boolean;
+    max_stores?: number;
+    current_stores_count?: number;
     onboarded_at?: string;
     created_at: string;
     updated_at: string;
@@ -48,7 +51,7 @@ export interface TenantStats {
 }
 
 export interface TenantWithStats extends Tenant {
-    stats: TenantStats;
+    stats: any;
 }
 
 export interface PlatformStats {
@@ -73,6 +76,24 @@ export interface ActivityLog {
     changes?: Record<string, any>;
     ip_address?: string;
     created_at: string;
+}
+
+export interface UpgradeRequest {
+    id: string;
+    tenant_id: string;
+    requested_tier: 'pro' | 'enterprise';
+    current_tier: string;
+    requested_stores_count: number;
+    business_justification: string;
+    status: 'pending' | 'approved' | 'rejected';
+    reviewed_by?: string;
+    reviewed_at?: string;
+    rejection_reason?: string;
+    created_at: string;
+    tenant?: {
+        name: string;
+        subscription_tier: string;
+    };
 }
 
 class SuperAdminApi {
@@ -288,6 +309,29 @@ class SuperAdminApi {
      */
     async updateTenantLimits(tenantId: string, limits: any): Promise<any> {
         const response = await apiClient.put<{ data: any }>(`/api/admin/tenants/${tenantId}/limits`, { resource_limits: limits });
+        return response.data;
+    }
+
+    /**
+     * Get all tenant upgrade requests
+     */
+    async getAllUpgradeRequests(): Promise<UpgradeRequest[]> {
+        const response = await apiClient.get<{ status: string, data: UpgradeRequest[] }>('/api/admin/upgrade-requests');
+        return response.data;
+    }
+
+    /**
+     * Review/Approve/Reject tenant upgrade request
+     */
+    async reviewUpgradeRequest(requestId: string, data: { status: 'approved' | 'rejected', rejection_reason?: string }): Promise<void> {
+        await apiClient.patch(`/api/admin/upgrade-requests/${requestId}/review`, data);
+    }
+
+    /**
+     * Verify a tenant manually
+     */
+    async verifyTenant(tenantId: string): Promise<Tenant> {
+        const response = await apiClient.patch<{ status: string, data: Tenant }>(`/api/admin/tenants/${tenantId}/verify`);
         return response.data;
     }
 }

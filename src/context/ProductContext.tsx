@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/db/db';
 import type { ReactNode } from 'react';
@@ -13,7 +13,7 @@ type ProductContextType = {
   addProduct: (product: Omit<Product, 'id'>) => Promise<Product>;
   updateProduct: (id: string, updates: Partial<Product>) => Promise<Product | undefined>;
   deleteProduct: (id: string) => Promise<boolean>;
-  updateStock: (items: { id: string; quantity: number }[]) => Promise<void>;
+  updateStock: (productId: string, data: { quantity: number; type: 'in' | 'out' | 'adjustment'; reason: string; branchId: string }) => Promise<void>;
   getProductById: (id: string) => Product | undefined;
 };
 
@@ -34,15 +34,33 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   })();
 
+  const [currentBranchId, setCurrentBranchId] = useState<string | undefined>(
+    localStorage.getItem('pos_current_branch_id') || undefined
+  );
+
   const {
     data: products = initialProducts || [],
     isLoading,
   } = useQuery<Product[]>({
-    queryKey: PRODUCTS_QUERY_KEY,
-    queryFn: productApi.getAll,
-    staleTime: 5 * 60 * 1000,
+    queryKey: ['products', currentBranchId],
+    queryFn: () => productApi.getAll(currentBranchId),
+    staleTime: 1 * 60 * 1000, // Shorter stale time for multi-store sync
     gcTime: 24 * 60 * 60 * 1000,
   });
+
+  // Listen for branch changes
+  useEffect(() => {
+    const handleBranchChange = (e: any) => {
+      const branchId = e.detail?.id;
+      if (branchId) {
+        setCurrentBranchId(branchId);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+      }
+    };
+
+    window.addEventListener('pos_branch_changed', handleBranchChange);
+    return () => window.removeEventListener('pos_branch_changed', handleBranchChange);
+  }, [queryClient]);
 
   // 2. Optimized Background Sync
   useEffect(() => {
@@ -98,9 +116,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const updateStockMutation = useMutation({
-    mutationFn: productApi.updateStock,
+    mutationFn: ({ productId, data }: { productId: string; data: any }) => productApi.updateStock(productId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 
@@ -117,7 +135,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     updateProduct: (id: string, updates: Partial<Product>) =>
       updateProductMutation.mutateAsync({ id, updates }),
     deleteProduct: deleteProductMutation.mutateAsync,
-    updateStock: updateStockMutation.mutateAsync,
+    updateStock: (productId: string, data: { quantity: number; type: 'in' | 'out' | 'adjustment'; reason: string; branchId: string }) =>
+      updateStockMutation.mutateAsync({ productId, data }),
     getProductById,
   };
 

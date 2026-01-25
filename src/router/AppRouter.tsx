@@ -22,6 +22,8 @@ import TenantUsersPage from '@/pages/admin/tenants/users/TenantUsersPage';
 import TenantActivityPage from '@/pages/admin/tenants/activity/TenantActivityPage';
 import TenantSettingsPage from '@/pages/admin/tenants/settings/TenantSettingsPage';
 import SystemConsolePage from '@/pages/admin/SystemConsolePage';
+import { UpgradeRequestsPage } from '@/pages/admin/UpgradeRequestsPage';
+import { StoreManagement } from '@/pages/StoreManagement';
 
 // Layout wrapper for protected routes
 const ProtectedLayout = () => {
@@ -95,6 +97,7 @@ const router = createBrowserRouter([
                         ]
                     },
                     { path: "console", element: <SystemConsolePage /> },
+                    { path: "upgrades", element: <UpgradeRequestsPage /> },
                 ]
             },
             {
@@ -151,6 +154,10 @@ const router = createBrowserRouter([
                     {
                         path: "/settings",
                         element: <SettingsScreen />
+                    },
+                    {
+                        path: "/stores",
+                        element: <StoreManagement />
                     },
                 ]
             },

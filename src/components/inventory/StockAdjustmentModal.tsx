@@ -37,10 +37,17 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
 
         try {
             setLoading(true);
-            const res = await apiClient.post(`/api/products/${product.id}/adjust`, {
+            const branchId = localStorage.getItem('pos_current_branch_id');
+            if (!branchId) {
+                alert("No branch selected. Please select a branch from the header.");
+                return;
+            }
+
+            const res = await apiClient.post(`/api/products/${product.id}/adjust-stock`, {
                 quantity: adjustment.quantity,
                 type: adjustment.type,
-                reason: adjustment.reason
+                reason: adjustment.reason,
+                branchId: branchId
             });
 
             if (res) {
