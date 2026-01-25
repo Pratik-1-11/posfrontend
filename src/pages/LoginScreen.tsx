@@ -31,7 +31,7 @@ export const LoginScreen = () => {
       if (!emailRegex.test(email)) throw new Error("Please enter a valid email address");
 
       const user = await login(email, password);
-      const role = user.role?.toLowerCase();
+      const role = user.role; // already normalized by authApi
 
       if (role === 'super_admin' || role === 'super-admin') {
         navigate("/admin");

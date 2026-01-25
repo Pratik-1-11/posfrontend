@@ -44,9 +44,9 @@ const ProtectedLayout = () => {
 // Guard for role-specific routes
 const RoleGuard = ({ roles }: { roles: string[] }) => {
     const { user } = useAuth();
-    const userRole = user?.role?.toLowerCase();
+    const userRole = user?.role; // normalized by authApi
     const canAccess = user && (
-        roles.some(r => r.toLowerCase() === userRole) ||
+        roles.includes(userRole as any) ||
         userRole === 'super_admin' ||
         userRole === 'super-admin'
     );
@@ -61,12 +61,12 @@ const RoleGuard = ({ roles }: { roles: string[] }) => {
 // Landing page to redirect based on role
 const RoleBasedLanding = () => {
     const { user } = useAuth();
-    const userRole = user?.role?.toLowerCase();
+    const userRole = user?.role;
     if (userRole === 'super_admin' || userRole === 'super-admin') {
         return <Navigate to="/admin" replace />;
     }
 
-    if (userRole === 'admin' || userRole === 'manager' || userRole === 'vendor_admin' || userRole === 'branch_admin') {
+    if (['admin', 'manager', 'vendor_admin', 'branch_admin'].includes(userRole as string)) {
         return <Navigate to="/dashboard" replace />;
     }
     return <Navigate to="/pos" replace />;

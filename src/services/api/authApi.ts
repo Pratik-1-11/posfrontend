@@ -15,18 +15,24 @@ type LoginResponse = {
 };
 
 const mapRole = (role: string): User["role"] => {
-  // Check for new roles first (case sensitive)
-  if (role === 'SUPER_ADMIN' || role === 'VENDOR_ADMIN') {
-    return role;
+  const normalized = (role || '').toLowerCase().trim();
+
+  const validRoles: User["role"][] = [
+    "admin",
+    "super_admin",
+    "super-admin",
+    "branch_admin",
+    "cashier",
+    "waiter",
+    "manager",
+    "inventory_manager",
+    "vendor_admin"
+  ];
+
+  if (validRoles.includes(normalized as any)) {
+    return normalized as any;
   }
 
-  // Fallback for legacy roles
-  const lowercaseRole = role.toLowerCase() as User["role"];
-  const validRoles: User["role"][] = ["admin", "super_admin", "branch_admin", "cashier", "waiter", "manager", "inventory_manager"];
-
-  if (validRoles.includes(lowercaseRole)) {
-    return lowercaseRole;
-  }
   return "cashier"; // Fallback
 };
 

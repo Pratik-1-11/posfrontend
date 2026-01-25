@@ -129,12 +129,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, o
   const { user, logout } = useAuth();
 
   const filteredNavItems = navItems.filter(item => {
-    const rawRole = user?.role;
-    if (!rawRole) return false;
-    const userRole = rawRole.toUpperCase();
+    const userRole = user?.role;
+    if (!userRole) return false;
 
-    // Strict role filtering: match user's role with item's roles (case-insensitive)
-    return item.roles?.some(r => r.toUpperCase() === userRole);
+    // Direct match against authorized roles (case-insensitive for safety)
+    return item.roles?.some(r => r.toLowerCase() === userRole.toLowerCase());
   });
 
   const handleNavClick = () => {
