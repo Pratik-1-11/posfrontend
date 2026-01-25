@@ -46,7 +46,7 @@ const RoleGuard = ({ roles }: { roles: string[] }) => {
     const { user } = useAuth();
     const userRole = user?.role?.toLowerCase();
     const canAccess = user && (
-        roles.includes(user.role as any) ||
+        roles.some(r => r.toLowerCase() === userRole) ||
         userRole === 'super_admin' ||
         userRole === 'super-admin'
     );
@@ -66,7 +66,7 @@ const RoleBasedLanding = () => {
         return <Navigate to="/admin" replace />;
     }
 
-    if (userRole === 'admin' || userRole === 'manager' || userRole === 'vendor_admin') {
+    if (userRole === 'admin' || userRole === 'manager' || userRole === 'vendor_admin' || userRole === 'branch_admin') {
         return <Navigate to="/dashboard" replace />;
     }
     return <Navigate to="/pos" replace />;
