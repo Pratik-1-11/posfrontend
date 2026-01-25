@@ -17,7 +17,9 @@ import {
   RefreshCw,
   FileSpreadsheet,
   ChevronDown,
-  Check
+  Check,
+  ShieldCheck,
+  CreditCard
 } from 'lucide-react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -33,8 +35,9 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { to: '/admin/tenants', icon: Building2, label: 'Tenants', roles: ['super_admin', 'SUPER_ADMIN'] },
-  { to: '/admin/upgrades', icon: PackagePlus, label: 'Upgrade Requests', roles: ['super_admin', 'SUPER_ADMIN'] },
+  { to: '/admin/tenants', icon: Building2, label: 'Tenant Nodes', roles: ['super_admin', 'SUPER_ADMIN'] },
+  { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrade Requests', roles: ['super_admin', 'SUPER_ADMIN'] },
+  { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscription Plans', roles: ['super_admin', 'SUPER_ADMIN'] },
   { to: '/admin/console', icon: Terminal, label: 'System Console', roles: ['super_admin', 'SUPER_ADMIN'] },
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
 
