@@ -3,6 +3,7 @@ import { Menu, Bell, User } from 'lucide-react';
 import { useProductContext } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 import { StoreSelector } from '@/components/store/StoreSelector';
+import { isSuperAdmin } from '@/utils/permissions';
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -58,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, isSidebarOpen, to
       </div>
 
       <div className="flex items-center gap-3 md:gap-4">
-        {user?.role?.toLowerCase() !== 'super_admin' && <StoreSelector />}
+        {!isSuperAdmin(user?.role) && <StoreSelector />}
         <div className="relative">
           <button
             className={`relative p-2 rounded-xl bg-white/5 ${showNotifications ? 'text-white' : 'text-slate-400'} hover:text-white hover:bg-white/10 transition-all`}

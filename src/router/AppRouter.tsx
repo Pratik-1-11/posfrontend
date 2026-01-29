@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-rou
 import { useAuth } from '@/context/AuthContext';
 import { Layout } from '@/layouts/Layout';
 import { LoginScreen } from '@/pages/LoginScreen';
+import { isSuperAdmin } from '@/utils/permissions';
 import { DashboardScreen } from '@/pages/DashboardScreen';
 import { PosScreen } from '@/pages/PosScreen';
 import { InventoryScreen } from '@/pages/InventoryScreen';
@@ -47,14 +48,13 @@ const RoleGuard = ({ roles }: { roles: string[] }) => {
     const userRole = user?.role?.toLowerCase();
     const canAccess = user && (
         roles.map(r => r.toLowerCase()).includes(userRole as any) ||
-        userRole === 'super_admin' ||
-        userRole === 'super-admin'
+        isSuperAdmin(user.role)
     );
 
     if (canAccess) return <Outlet />;
 
     // Redirect logic
-    if (userRole === 'super_admin' || userRole === 'super-admin') return <Navigate to="/admin" replace />;
+    if (isSuperAdmin(user?.role)) return <Navigate to="/admin" replace />;
     return <Navigate to="/pos" replace />;
 };
 
@@ -62,7 +62,7 @@ const RoleGuard = ({ roles }: { roles: string[] }) => {
 const RoleBasedLanding = () => {
     const { user } = useAuth();
     const userRole = user?.role?.toLowerCase();
-    if (userRole === 'super_admin' || userRole === 'super-admin') {
+    if (isSuperAdmin(user?.role)) {
         return <Navigate to="/admin" replace />;
     }
 

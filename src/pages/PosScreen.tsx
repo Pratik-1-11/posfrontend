@@ -29,6 +29,7 @@ import { useProductContext } from '@/context/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { orderApi } from '@/services/api/orderApi';
 import { reportApi } from '@/services/api/reportApi';
+import { canAccessDashboard, isManager } from '@/utils/permissions';
 
 import type { PaymentMethod } from '@/types/payment';
 import type { Customer } from '@/types/customer';
@@ -343,14 +344,18 @@ export const PosScreen: React.FC = () => {
                 Trial Mode
               </div>
             )}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm text-xs font-bold text-slate-600">
-              <TrendingUp size={14} className="text-emerald-500" />
-              {stats.count} Sales Today
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm text-xs font-bold text-slate-600">
-              <History size={14} className="text-blue-500" />
-              Rs. {stats.total.toLocaleString()}
-            </div>
+            {canAccessDashboard(user?.role) && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm text-xs font-bold text-slate-600">
+                <TrendingUp size={14} className="text-emerald-500" />
+                {stats.count} Sales Today
+              </div>
+            )}
+            {isManager(user?.role) && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm text-xs font-bold text-slate-600">
+                <History size={14} className="text-blue-500" />
+                Rs. {stats.total.toLocaleString()}
+              </div>
+            )}
           </div>
         </div>
 

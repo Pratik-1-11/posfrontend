@@ -35,24 +35,24 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { to: '/admin/tenants', icon: Building2, label: 'Tenant Nodes', roles: ['super_admin', 'SUPER_ADMIN'] },
-  { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrade Requests', roles: ['super_admin', 'SUPER_ADMIN'] },
-  { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscription Plans', roles: ['super_admin', 'SUPER_ADMIN'] },
-  { to: '/admin/console', icon: Terminal, label: 'System Console', roles: ['super_admin', 'SUPER_ADMIN'] },
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
+  { to: '/admin/tenants', icon: Building2, label: 'Tenant Nodes', roles: ['super_admin', 'super-admin'] },
+  { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrade Requests', roles: ['super_admin', 'super-admin'] },
+  { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscription Plans', roles: ['super_admin', 'super-admin'] },
+  { to: '/admin/console', icon: Terminal, label: 'System Console', roles: ['super_admin', 'super-admin'] },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
 
-  { to: '/pos', icon: ShoppingCart, label: 'POS', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER', 'cashier', 'CASHIER'] },
-  { to: '/products', icon: Package, label: 'Products', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER', 'cashier', 'CASHIER'] },
-  { to: '/purchases', icon: PackagePlus, label: 'Purchases', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
-  { to: '/expenses', icon: DollarSign, label: 'Expenses', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
-  { to: '/customers', icon: Users, label: 'Customers', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER', 'cashier', 'CASHIER'] },
-  { to: '/customers/recovery', icon: Clock, label: 'Credit Recovery', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
-  { to: '/reports', icon: BarChart2, label: 'Reports', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
-  { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER', 'cashier', 'CASHIER'] },
-  { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Report', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
-  { to: '/employees', icon: Users, label: 'Employees', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin'] },
-  { to: '/stores', icon: Building2, label: 'Store Management', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
-  { to: '/settings', icon: Settings, label: 'Settings', roles: ['admin', 'VENDOR_ADMIN', 'branch_admin', 'manager', 'VENDOR_MANAGER'] },
+  { to: '/pos', icon: ShoppingCart, label: 'POS', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier', 'waiter'] },
+  { to: '/products', icon: Package, label: 'Products', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager', 'cashier'] },
+  { to: '/purchases', icon: PackagePlus, label: 'Purchases', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
+  { to: '/expenses', icon: DollarSign, label: 'Expenses', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+  { to: '/customers', icon: Users, label: 'Customers', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
+  { to: '/customers/recovery', icon: Clock, label: 'Credit Recovery', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+  { to: '/reports', icon: BarChart2, label: 'Reports', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+  { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
+  { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Report', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+  { to: '/employees', icon: Users, label: 'Employees', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+  { to: '/stores', icon: Building2, label: 'Store Management', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+  { to: '/settings', icon: Settings, label: 'Settings', roles: ['admin', 'vendor_admin', 'branch_admin'] },
 ];
 
 const TenantSwitcher: React.FC<{ onClose?: () => void }> = ({ onClose }) => {

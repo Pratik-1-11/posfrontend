@@ -11,6 +11,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { orderApi } from '@/services/api/orderApi';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useAuth } from '@/context/AuthContext';
+import { canViewReports, isAdmin } from '@/utils/permissions';
 
 
 const RecentTransactions = ({ transactions, navigate }: { transactions: any[], navigate: (path: string) => void }) => (
@@ -118,6 +120,7 @@ const DashboardSkeleton = () => (
 
 const DashboardContent: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const { products, loading: productsLoading } = useProductContext();
 
     const { data: summary, isLoading: summaryLoading } = useQuery({
@@ -197,20 +200,24 @@ const DashboardContent: React.FC = () => {
                         trend={salesTrend}
                         onClick={() => navigate('/reports')}
                     />
-                    <DashboardCard
-                        title="Active Cashiers"
-                        value={`${health?.activeCashiers || 0}`}
-                        icon={FileText}
-                        onClick={() => navigate('/employees')}
-                    />
-                    <DashboardCard
-                        title="Pending Credits"
-                        value={`Rs.${(health?.pendingCredits || 0).toLocaleString()}`}
-                        icon={AlertTriangle}
-                        description="Customer dues"
-                        onClick={() => navigate('/customers')}
-                        className={(health?.pendingCredits || 0) > 10000 ? "border-orange-100" : ""}
-                    />
+                    {canViewReports(user?.role) && (
+                        <DashboardCard
+                            title="Active Cashiers"
+                            value={`${health?.activeCashiers || 0}`}
+                            icon={FileText}
+                            onClick={() => navigate('/employees')}
+                        />
+                    )}
+                    {canViewReports(user?.role) && (
+                        <DashboardCard
+                            title="Pending Credits"
+                            value={`Rs.${(health?.pendingCredits || 0).toLocaleString()}`}
+                            icon={AlertTriangle}
+                            description="Customer dues"
+                            onClick={() => navigate('/customers')}
+                            className={(health?.pendingCredits || 0) > 10000 ? "border-orange-100" : ""}
+                        />
+                    )}
                     <DashboardCard
                         title="Low Stock"
                         value={`${health?.lowStockAlerts || 0}`}
@@ -255,40 +262,44 @@ const DashboardContent: React.FC = () => {
 
                 {/* More Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="col-span-1 md:col-span-1">
-                        <CardHeader>
-                            <CardTitle className="text-sm font-medium">Payment Split (30d)</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                {Object.entries(performance?.paymentSplit || {}).map(([method, amount]) => (
-                                    <div key={method} className="flex justify-between items-center text-sm">
-                                        <span className="capitalize text-muted-foreground">{method}</span>
-                                        <span className="font-medium">Rs.{amount.toLocaleString()}</span>
+                    {canViewReports(user?.role) && (
+                        <Card className="col-span-1 md:col-span-1">
+                            <CardHeader>
+                                <CardTitle className="text-sm font-medium">Payment Split (30d)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {Object.entries(performance?.paymentSplit || {}).map(([method, amount]) => (
+                                        <div key={method} className="flex justify-between items-center text-sm">
+                                            <span className="capitalize text-muted-foreground">{method}</span>
+                                            <span className="font-medium">Rs.{amount.toLocaleString()}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {isAdmin(user?.role) && (
+                        <Card className="col-span-1 md:col-span-2">
+                            <CardHeader>
+                                <CardTitle className="text-sm font-medium">Operational Status</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-4 text-center">
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <p className="text-xs text-muted-foreground uppercase">Failed Orders (Today)</p>
+                                        <p className={cn("text-xl font-bold mt-1", (health?.failedTransactions || 0) > 0 ? "text-red-600" : "text-gray-900")}>
+                                            {health?.failedTransactions || 0}
+                                        </p>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="col-span-1 md:col-span-2">
-                        <CardHeader>
-                            <CardTitle className="text-sm font-medium">Operational Status</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                                <div className="p-3 bg-gray-50 rounded-lg">
-                                    <p className="text-xs text-muted-foreground uppercase">Failed Orders (Today)</p>
-                                    <p className={cn("text-xl font-bold mt-1", (health?.failedTransactions || 0) > 0 ? "text-red-600" : "text-gray-900")}>
-                                        {health?.failedTransactions || 0}
-                                    </p>
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                        <p className="text-xs text-muted-foreground uppercase">Total SKUs</p>
+                                        <p className="text-xl font-bold mt-1 text-gray-900">{totalProducts}</p>
+                                    </div>
                                 </div>
-                                <div className="p-3 bg-gray-50 rounded-lg">
-                                    <p className="text-xs text-muted-foreground uppercase">Total SKUs</p>
-                                    <p className="text-xl font-bold mt-1 text-gray-900">{totalProducts}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>
