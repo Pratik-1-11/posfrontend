@@ -31,11 +31,11 @@ export const LoginScreen = () => {
       if (!emailRegex.test(email)) throw new Error("Please enter a valid email address");
 
       const user = await login(email, password);
-      const role = user.role; // already normalized by authApi
+      const role = user.role?.toLowerCase();
 
       if (role === 'super_admin' || role === 'super-admin') {
         navigate("/admin");
-      } else if (['admin', 'manager', 'vendor_admin', 'branch_admin'].includes(role)) {
+      } else if (['admin', 'manager', 'vendor_admin', 'branch_admin', 'vendor_manager', 'inventory_manager'].includes(role)) {
         navigate("/dashboard");
       } else {
         navigate("/pos");

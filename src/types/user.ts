@@ -1,4 +1,4 @@
-export type Role = "admin" | "super_admin" | "super-admin" | "branch_admin" | "cashier" | "waiter" | "manager" | "inventory_manager" | "SUPER_ADMIN" | "VENDOR_ADMIN" | "vendor_admin"
+export type Role = "admin" | "super_admin" | "super-admin" | "branch_admin" | "cashier" | "waiter" | "manager" | "inventory_manager" | "SUPER_ADMIN" | "VENDOR_ADMIN" | "vendor_admin" | "vendor_manager" | "VENDOR_MANAGER" | "CASHIER" | "INVENTORY_MANAGER"
 
 export interface User {
     id: string
