@@ -34,11 +34,12 @@ const mapRole = (role: string): User["role"] => {
     'VENDOR_ADMIN': 'VENDOR_ADMIN',
     'VENDOR-ADMIN': 'VENDOR_ADMIN',
     'VENDORADMIN': 'VENDOR_ADMIN',
-    'ADMIN': 'VENDOR_ADMIN', // Legacy mapping
+    'ADMIN': 'VENDOR_ADMIN',
     'VENDOR_MANAGER': 'VENDOR_MANAGER',
     'VENDOR-MANAGER': 'VENDOR_MANAGER',
-    'MANAGER': 'VENDOR_MANAGER', // Legacy mapping
+    'MANAGER': 'VENDOR_MANAGER',
     'CASHIER': 'CASHIER',
+    'USER': 'CASHIER', // Fallback for basic users
     'INVENTORY_MANAGER': 'INVENTORY_MANAGER',
     'INVENTORY-MANAGER': 'INVENTORY_MANAGER',
     'WAITER': 'WAITER'
@@ -51,8 +52,9 @@ const mapRole = (role: string): User["role"] => {
   }
 
   // ⚠️ SECURITY: Do NOT default to any role - throw error
-  console.error(`[AUTH] Invalid role received from backend: "${role}"`);
-  throw new Error(`Invalid user role: ${role}. Please contact support.`);
+  const errorMsg = `Invalid user role: "${role}" (Normalized: "${normalized}"). This account may not be fully set up. Please contact administrator.`;
+  console.error(`[AUTH] ${errorMsg}`);
+  throw new Error(errorMsg);
 };
 
 export const authApi = {
