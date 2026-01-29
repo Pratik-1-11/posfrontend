@@ -20,7 +20,10 @@ import {
   Check,
   ShieldCheck,
   CreditCard,
-  History
+  History,
+  Activity,
+  Receipt,
+  LifeBuoy
 } from 'lucide-react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -52,6 +55,9 @@ const navSections: NavSection[] = [
       { to: '/admin/tenants', icon: Building2, label: 'Tenants', roles: ['SUPER_ADMIN'] },
       { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrades', roles: ['SUPER_ADMIN'] },
       { to: '/admin/subscriptions', icon: CreditCard, label: 'Plans', roles: ['SUPER_ADMIN'] },
+      { to: '/admin/billing', icon: Receipt, label: 'Billing', roles: ['SUPER_ADMIN'] },
+      { to: '/admin/logs', icon: Activity, label: 'Audit Logs', roles: ['SUPER_ADMIN'] },
+      { to: '/admin/support', icon: LifeBuoy, label: 'Support', roles: ['SUPER_ADMIN'] },
       { to: '/admin/console', icon: Terminal, label: 'Console', roles: ['SUPER_ADMIN'] },
     ]
   },

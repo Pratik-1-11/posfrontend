@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Building2, Mail, Phone, Tag } from 'lucide-react';
+import { X, Save, Building2, Mail, Phone, Tag, Zap } from 'lucide-react';
+import { useAdminPlans } from '@/hooks/admin/useAdminPlans';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 
@@ -18,6 +19,7 @@ export const TenantModal: React.FC<TenantModalProps> = ({
     initialData,
     mode
 }) => {
+    const { plans, loading: plansLoading } = useAdminPlans();
     const [formData, setFormData] = useState({
         name: '',
         slug: '',
@@ -175,15 +177,25 @@ export const TenantModal: React.FC<TenantModalProps> = ({
 
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Plan Tier</Label>
-                            <select
-                                value={formData.subscription_tier}
-                                onChange={(e) => setFormData(prev => ({ ...prev, subscription_tier: e.target.value }))}
-                                className="w-full h-12 px-4 border border-slate-200 rounded-2xl text-sm font-bold appearance-none bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                            >
-                                <option value="basic">Standard</option>
-                                <option value="pro">Enterprise Pro</option>
-                                <option value="enterprise">Global Enterprise</option>
-                            </select>
+                            <div className="relative">
+                                <select
+                                    value={formData.subscription_tier}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, subscription_tier: e.target.value }))}
+                                    className="w-full h-12 px-4 border border-slate-200 rounded-2xl text-sm font-bold appearance-none bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 outline-none pr-10"
+                                    disabled={plansLoading}
+                                >
+                                    {plansLoading ? (
+                                        <option>Loading plans...</option>
+                                    ) : (
+                                        plans.map(plan => (
+                                            <option key={plan.id} value={plan.slug}>
+                                                {plan.name} ({plan.currency}{plan.price_monthly}/mo)
+                                            </option>
+                                        ))
+                                    )}
+                                </select>
+                                <Zap className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                            </div>
                         </div>
                     </div>
 

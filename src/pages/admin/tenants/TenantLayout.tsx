@@ -8,6 +8,7 @@ import {
     ChevronLeft,
     Maximize2,
     Trash2,
+    Network
 } from 'lucide-react';
 import { useAdminTenantDetails } from '@/hooks/admin/useAdminTenantDetails';
 import { TenantProvider } from './TenantContext';
@@ -63,6 +64,7 @@ const TenantLayout: React.FC = () => {
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
         { id: 'users', label: 'Users', icon: Users },
         { id: 'activity', label: 'Activity', icon: Activity },
+        { id: 'integrations', label: 'Integrations', icon: Network },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 

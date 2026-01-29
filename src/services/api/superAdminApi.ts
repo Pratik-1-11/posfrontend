@@ -16,9 +16,11 @@ export interface Tenant {
     contact_email: string;
     contact_phone?: string;
     address?: string;
-    subscription_tier: 'basic' | 'pro' | 'enterprise';
+    plan_id?: string;
+    deleted_at?: string;
+    subscription_tier: string;
     subscription_status: 'active' | 'trial' | 'suspended' | 'cancelled';
-    plan_interval?: 'monthly' | 'yearly';
+    plan_interval?: 'monthly' | 'yearly' | string;
     subscription_start_date?: string;
     subscription_end_date?: string;
     subscription_started_at?: string;
@@ -31,6 +33,7 @@ export interface Tenant {
         storage_gb: number;
         features: string[];
     };
+    plans?: Plan; // Joined plan data
     is_active: boolean;
     verified?: boolean;
     max_stores?: number;
@@ -62,21 +65,11 @@ export interface PlatformStats {
     totalRevenue: number;
     totalSales: number;
     systemUptime: number;
+    arpu?: number;
+    tierDistribution?: Record<string, number>;
     growthData?: Array<{ name: string; tenants: number; revenue: number }>;
 }
 
-export interface ActivityLog {
-    id: string;
-    tenant_id: string;
-    actor_id: string;
-    actor_role: string;
-    action: string;
-    entity_type: string;
-    entity_id?: string;
-    changes?: Record<string, any>;
-    ip_address?: string;
-    created_at: string;
-}
 
 export interface UpgradeRequest {
     id: string;
@@ -94,6 +87,30 @@ export interface UpgradeRequest {
         name: string;
         subscription_tier: string;
     };
+}
+
+export interface Plan {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    price_monthly: number;
+    price_yearly: number;
+    currency: string;
+    max_users: number;
+    max_stores: number;
+    max_products: number;
+    max_customers: number;
+    features: {
+        api_access: boolean;
+        custom_reports: boolean;
+        inventory_v2: boolean;
+        loyalty_program: boolean;
+        multi_branch_sync: boolean;
+    };
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 class SuperAdminApi {
@@ -327,13 +344,96 @@ class SuperAdminApi {
         await apiClient.patch(`/api/admin/upgrade-requests/${requestId}/review`, data);
     }
 
-    /**
-     * Verify a tenant manually
-     */
     async verifyTenant(tenantId: string): Promise<Tenant> {
         const response = await apiClient.patch<{ status: string, data: Tenant }>(`/api/admin/tenants/${tenantId}/verify`);
         return response.data;
     }
+
+    /**
+     * Billing & Monetization
+     */
+    async getAllInvoices(params?: { tenantId?: string; status?: string }): Promise<Invoice[]> {
+        const response = await apiClient.get<{ data: Invoice[] }>('/api/admin/billing/invoices', { params });
+        return (response as any).data || response;
+    }
+
+    async recordPayment(data: {
+        invoice_id: string;
+        payment_method: string;
+        transaction_id?: string;
+    }): Promise<any> {
+        return await apiClient.post<any>('/api/admin/billing/payments', data);
+    }
+
+    async runBillingMaintenance(): Promise<{ message: string }> {
+        return await apiClient.post<{ message: string }>('/api/admin/billing/maintenance');
+    }
+
+    /**
+     * Support & Announcements
+     */
+    async createAnnouncement(data: Partial<Announcement>): Promise<Announcement> {
+        const response = await apiClient.post<{ data: Announcement }>('/api/admin/announcements', data);
+        return response.data;
+    }
+
+    async getAnnouncements(): Promise<Announcement[]> {
+        const response = await apiClient.get<{ data: Announcement[] }>('/api/admin/announcements');
+        return response.data;
+    }
+
+    async getTenantHealth(tenantId: string): Promise<{ health_score: number }> {
+        const response = await apiClient.get<{ data: { health_score: number } }>(`/api/admin/tenants/${tenantId}/health`);
+        return response.data;
+    }
+}
+
+export interface ActivityLog {
+    id: string;
+    tenant_id?: string;
+    actor_id: string;
+    actor_role: string;
+    action: string;
+    entity_type: string;
+    entity_id?: string;
+    changes?: Record<string, any>;
+    ip_address?: string;
+    created_at: string;
+    tenant?: {
+        name: string;
+    };
+}
+
+export interface Invoice {
+    id: string;
+    tenant_id: string;
+    plan_id: string;
+    invoice_number: string;
+    amount: number;
+    currency: string;
+    status: 'paid' | 'unpaid' | 'overdue' | 'void';
+    billing_reason: string;
+    billing_period_start: string;
+    billing_period_end: string;
+    due_date: string;
+    paid_at?: string;
+    created_at: string;
+    tenant?: {
+        name: string;
+        slug: string;
+    };
+}
+
+export interface Announcement {
+    id: string;
+    title: string;
+    message: string;
+    type: 'info' | 'warning' | 'critical' | 'success';
+    target_plan_id?: string;
+    starts_at: string;
+    ends_at?: string;
+    is_active: boolean;
+    created_at: string;
 }
 
 export const superAdminApi = new SuperAdminApi();

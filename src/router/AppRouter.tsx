@@ -23,11 +23,16 @@ import TenantOverviewPage from '@/pages/admin/tenants/overview/TenantOverviewPag
 import TenantUsersPage from '@/pages/admin/tenants/users/TenantUsersPage';
 import TenantActivityPage from '@/pages/admin/tenants/activity/TenantActivityPage';
 import TenantSettingsPage from '@/pages/admin/tenants/settings/TenantSettingsPage';
+import { TenantIntegrationsPage } from '@/pages/admin/tenants/integration/TenantIntegrationsPage';
 import SystemConsolePage from '@/pages/admin/SystemConsolePage';
 import { UpgradeRequestsPage } from '@/pages/admin/UpgradeRequestsPage';
 import { StoreManagement } from '@/pages/StoreManagement';
 import { SubscriptionPlansPage } from '@/pages/admin/SubscriptionPlansPage';
 import SalesHistoryScreen from '@/pages/SalesHistoryScreen';
+import { SubscriptionsDashboard } from '@/pages/admin/SubscriptionsDashboard';
+import { AuditLogsPage } from '@/pages/admin/AuditLogsPage';
+import { PlatformConsoleOverview } from '@/pages/admin/PlatformConsoleOverview';
+import { SupportCenterPage } from '@/pages/admin/SupportCenterPage';
 
 // Layout wrapper for protected routes
 const ProtectedLayout = () => {
@@ -100,7 +105,8 @@ const router = createBrowserRouter([
                 path: "/admin",
                 element: <StrictRoleGuard allowedRoles={['SUPER_ADMIN']} />,
                 children: [
-                    { index: true, element: <Navigate to="/admin/tenants" replace /> },
+                    { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+                    { path: "dashboard", element: <PlatformConsoleOverview /> },
                     { path: "tenants", element: <TenantListPage /> },
                     {
                         path: "tenants/:id",
@@ -110,12 +116,16 @@ const router = createBrowserRouter([
                             { path: "overview", element: <TenantOverviewPage /> },
                             { path: "users", element: <TenantUsersPage /> },
                             { path: "activity", element: <TenantActivityPage /> },
+                            { path: "integrations", element: <TenantIntegrationsPage /> },
                             { path: "settings", element: <TenantSettingsPage /> },
                         ]
                     },
                     { path: "console", element: <SystemConsolePage /> },
                     { path: "upgrade-requests", element: <UpgradeRequestsPage /> },
                     { path: "subscriptions", element: <SubscriptionPlansPage /> },
+                    { path: "billing", element: <SubscriptionsDashboard /> },
+                    { path: "logs", element: <AuditLogsPage /> },
+                    { path: "support", element: <SupportCenterPage /> },
                 ]
             },
             // Root redirect
