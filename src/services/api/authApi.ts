@@ -55,7 +55,7 @@ export const authApi = {
 
     tokenStorage.set(res.data.accessToken);
 
-    const { id, full_name, email, role } = res.data.user;
+    const { id, full_name, email, role, tenant, branch_id } = res.data.user as any;
 
     return {
       id: id,
@@ -63,6 +63,14 @@ export const authApi = {
       username: email.split('@')[0],
       email: email,
       role: mapRole(role),
+      tenant: tenant ? {
+        id: tenant.id,
+        name: tenant.name,
+        subscription_status: tenant.subscription_status,
+        subscription_end_date: tenant.subscription_end_date,
+        plan_interval: tenant.plan_interval
+      } : undefined,
+      branchId: branch_id
     };
   },
   logout: async () => {

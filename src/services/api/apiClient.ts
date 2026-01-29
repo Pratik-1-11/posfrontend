@@ -51,6 +51,11 @@ export const apiClient = {
       headers.set('Authorization', `Bearer ${token}`);
     }
 
+    const branchId = localStorage.getItem('pos_current_branch_id');
+    if (branchId) {
+      headers.set('x-branch-id', branchId);
+    }
+
     const res = await fetch(url, {
       ...options,
       headers,

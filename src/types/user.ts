@@ -14,4 +14,5 @@ export interface User {
         subscription_end_date?: string;
         plan_interval?: string;
     }
+    branchId?: string;
 }

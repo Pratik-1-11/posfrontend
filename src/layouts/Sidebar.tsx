@@ -34,25 +34,66 @@ interface SidebarProps {
   onToggleCollapse?: () => void;
 }
 
-const navItems = [
-  { to: '/admin/tenants', icon: Building2, label: 'Tenant Nodes', roles: ['super_admin', 'super-admin'] },
-  { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrade Requests', roles: ['super_admin', 'super-admin'] },
-  { to: '/admin/subscriptions', icon: CreditCard, label: 'Subscription Plans', roles: ['super_admin', 'super-admin'] },
-  { to: '/admin/console', icon: Terminal, label: 'System Console', roles: ['super_admin', 'super-admin'] },
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
+interface NavItem {
+  to: string;
+  icon: any;
+  label: string;
+  roles: string[];
+}
 
-  { to: '/pos', icon: ShoppingCart, label: 'POS', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier', 'waiter'] },
-  { to: '/products', icon: Package, label: 'Products', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager', 'cashier'] },
-  { to: '/purchases', icon: PackagePlus, label: 'Purchases', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
-  { to: '/expenses', icon: DollarSign, label: 'Expenses', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
-  { to: '/customers', icon: Users, label: 'Customers', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
-  { to: '/customers/recovery', icon: Clock, label: 'Credit Recovery', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
-  { to: '/reports', icon: BarChart2, label: 'Reports', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
-  { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
-  { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Report', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
-  { to: '/employees', icon: Users, label: 'Employees', roles: ['admin', 'vendor_admin', 'branch_admin'] },
-  { to: '/stores', icon: Building2, label: 'Store Management', roles: ['admin', 'vendor_admin', 'branch_admin'] },
-  { to: '/settings', icon: Settings, label: 'Settings', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    title: 'System',
+    items: [
+      { to: '/admin/tenants', icon: Building2, label: 'Tenants', roles: ['super_admin', 'super-admin'] },
+      { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrades', roles: ['super_admin', 'super-admin'] },
+      { to: '/admin/subscriptions', icon: CreditCard, label: 'Plans', roles: ['super_admin', 'super-admin'] },
+      { to: '/admin/console', icon: Terminal, label: 'Console', roles: ['super_admin', 'super-admin'] },
+    ]
+  },
+  {
+    title: 'Overview',
+    items: [
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
+    ]
+  },
+  {
+    title: 'Operations',
+    items: [
+      { to: '/pos', icon: ShoppingCart, label: 'POS Terminal', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier', 'waiter'] },
+      { to: '/products', icon: Package, label: 'Inventory', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager', 'cashier'] },
+      { to: '/purchases', icon: PackagePlus, label: 'Stock In', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
+      { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
+      { to: '/expenses', icon: DollarSign, label: 'Expenses', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+    ]
+  },
+  {
+    title: 'Relationships',
+    items: [
+      { to: '/customers', icon: Users, label: 'Customers', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
+      { to: '/customers/recovery', icon: Clock, label: 'Recoveries', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+      { to: '/employees', icon: Users, label: 'Staff Management', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+    ]
+  },
+  {
+    title: 'Analytics',
+    items: [
+      { to: '/reports', icon: BarChart2, label: 'Sales Reports', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+      { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Book', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+    ]
+  },
+  {
+    title: 'Settings',
+    items: [
+      { to: '/stores', icon: Building2, label: 'Branch Profiles', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+      { to: '/settings', icon: Settings, label: 'General Settings', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+    ]
+  }
 ];
 
 const TenantSwitcher: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
@@ -75,11 +116,11 @@ const TenantSwitcher: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               {currentTenant?.name.charAt(0) || '-'}
             </div>
             <div className="text-left truncate">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                {currentTenant ? 'Managing' : 'Context'}
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                {currentTenant ? 'Managing Node' : 'Select Node'}
               </div>
               <div className={`text-sm font-black truncate max-w-[120px] ${currentTenant ? 'text-white' : 'text-slate-500'}`}>
-                {currentTenant?.name || 'Select Tenant'}
+                {currentTenant?.name || 'Context'}
               </div>
             </div>
           </div>
@@ -87,38 +128,41 @@ const TenantSwitcher: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 w-full mt-2 bg-slate-800 rounded-xl border border-slate-700 shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto custom-scrollbar">
-            <div className="p-2 space-y-1">
-              {tenants.map(tenant => (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <div className="absolute top-full left-0 w-full mt-2 bg-slate-800 rounded-xl border border-slate-700 shadow-xl overflow-hidden z-50 max-h-60 overflow-y-auto custom-scrollbar">
+              <div className="p-2 space-y-1">
+                {tenants.map(tenant => (
+                  <button
+                    key={tenant.id}
+                    onClick={() => {
+                      navigate(`/admin/tenants/${tenant.id}/overview`);
+                      setIsOpen(false);
+                      if (onClose && window.innerWidth < 1024) onClose();
+                    }}
+                    className={`w-full flex items-center justify-between p-2 rounded-lg text-sm font-medium transition-all ${tenant.id === id
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                      }`}
+                  >
+                    <span className="truncate">{tenant.name}</span>
+                    {tenant.id === id && <Check className="h-3 w-3" />}
+                  </button>
+                ))}
+                <div className="h-px bg-slate-700 my-1" />
                 <button
-                  key={tenant.id}
                   onClick={() => {
-                    navigate(`/admin/tenants/${tenant.id}/overview`);
+                    navigate('/admin/tenants');
                     setIsOpen(false);
                     if (onClose && window.innerWidth < 1024) onClose();
                   }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-sm font-medium transition-all ${tenant.id === id
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:bg-slate-700 hover:text-white'
-                    }`}
+                  className="w-full text-left p-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white hover:bg-slate-700 transition-all"
                 >
-                  <span className="truncate">{tenant.name}</span>
-                  {tenant.id === id && <Check className="h-3 w-3" />}
+                  View All Nodes
                 </button>
-              ))}
-              <div className="h-px bg-slate-700 my-1" />
-              <button
-                onClick={() => {
-                  navigate('/admin/tenants');
-                  setIsOpen(false);
-                  if (onClose && window.innerWidth < 1024) onClose();
-                }}
-                className="w-full text-left p-2 rounded-lg text-xs font-black uppercase tracking-wider text-slate-500 hover:text-white hover:bg-slate-700 transition-all"
-              >
-                View All Tenants
-              </button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -127,14 +171,6 @@ const TenantSwitcher: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, onClose, onToggleCollapse }) => {
   const { user, logout } = useAuth();
-
-  const filteredNavItems = navItems.filter(item => {
-    const userRole = user?.role;
-    if (!userRole) return false;
-
-    // Direct match against authorized roles (case-insensitive for safety)
-    return item.roles?.some(r => r.toLowerCase() === userRole.toLowerCase());
-  });
 
   const handleNavClick = () => {
     if (onClose && window.innerWidth < 1024) {
@@ -148,6 +184,55 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, o
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const renderNavSection = (section: NavSection) => {
+    const userRole = user?.role?.toLowerCase();
+    const filteredItems = section.items.filter(item =>
+      item.roles.some(r => r.toLowerCase() === userRole)
+    );
+
+    if (filteredItems.length === 0) return null;
+
+    return (
+      <div key={section.title} className="mb-6 last:mb-0">
+        {!isCollapsed && (
+          <h3 className="px-4 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+            {section.title}
+          </h3>
+        )}
+        <div className="space-y-1">
+          {filteredItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={handleNavClick}
+              className={({ isActive }) => `
+                flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
+                ${isActive
+                  ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                ${isCollapsed ? 'justify-center' : ''}
+              `}
+              title={isCollapsed ? item.label : undefined}
+            >
+              <item.icon
+                size={isCollapsed ? 20 : 18}
+                className={`transition-transform duration-200 ${isCollapsed ? '' : 'group-hover:scale-110'}`}
+              />
+              {!isCollapsed && (
+                <span className="text-xs font-black tracking-tight uppercase tracking-wider">{item.label}</span>
+              )}
+              {isCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] font-bold rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-[100] shadow-xl">
+                  {item.label}
+                </div>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -164,58 +249,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, o
         <div className="flex items-center justify-between p-4 border-b border-white/5 bg-slate-900/50 backdrop-blur-sm">
           {!isCollapsed && (
             <div className="flex items-center gap-2 px-2">
-              <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               </div>
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Main Menu</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Operational Unit</span>
             </div>
           )}
           {isCollapsed && (
             <div className="mx-auto">
-              <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-primary" />
+              <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
               </div>
             </div>
           )}
           <button
             onClick={onToggleCollapse}
-            className="hidden lg:flex p-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+            className="hidden lg:flex p-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all ml-auto"
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
         {/* Tenant Switcher (Super Admin Context) */}
-        {!isCollapsed && user?.role?.toLowerCase() === 'super_admin' && (
+        {!isCollapsed && (user?.role?.toLowerCase() === 'super_admin' || user?.role?.toLowerCase() === 'super-admin') && (
           <TenantSwitcher onClose={onClose} />
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
-          {filteredNavItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={handleNavClick}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group
-                ${isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'}
-                ${isCollapsed ? 'justify-center' : ''}
-              `}
-              title={isCollapsed ? item.label : undefined}
-            >
-              <item.icon
-                size={20}
-                className={`transition-transform duration-200 ${isCollapsed ? '' : 'group-hover:scale-110'}`}
-              />
-              {!isCollapsed && (
-                <span className="text-sm font-black tracking-tight uppercase tracking-wide">{item.label}</span>
-              )}
-            </NavLink>
-          ))}
+        <nav className="flex-1 overflow-y-auto py-6 px-3 custom-scrollbar scrollbar-hide">
+          {navSections.map(renderNavSection)}
         </nav>
 
         {/* Footer */}
@@ -228,9 +291,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, o
             `}
             title={isCollapsed ? 'Logout' : undefined}
           >
-            <LogOut size={20} className="group-hover:rotate-12 transition-transform" />
+            <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
             {!isCollapsed && (
-              <span className="text-sm font-black tracking-tight uppercase tracking-wide">Logout</span>
+              <span className="text-xs font-black tracking-tight uppercase tracking-wider">Sign Out</span>
             )}
           </button>
         </div>
