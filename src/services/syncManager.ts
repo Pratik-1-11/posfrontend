@@ -15,8 +15,8 @@ export const syncManager = {
             console.log('[Sync] Initializing pull...');
 
             // 1. Get last sync timestamps
-            const lastProductSync = await db.syncState.get('last_product_sync');
-            const lastCustomerSync = await db.syncState.get('last_customer_sync');
+            await db.syncState.get('last_product_sync');
+            await db.syncState.get('last_customer_sync');
 
             // 2. Fetch Products & Categories (Simplified for now - we fetch all if stale)
             // In a more advanced version, we'd send the timestamp to the server

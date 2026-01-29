@@ -1,4 +1,9 @@
-import { apiClient, ApiResponse } from './apiClient';
+import { apiClient } from './apiClient';
+
+export interface ApiResponse<T> {
+    status: 'success' | 'error';
+    data: T;
+}
 
 export interface ProductBatch {
     id: string;
@@ -18,22 +23,18 @@ export interface ProductBatch {
 export const batchApi = {
     list: async (productId?: string) => {
         const url = productId ? `/api/batches?productId=${productId}` : '/api/batches';
-        const response = await apiClient.get<ApiResponse<{ batches: ProductBatch[] }>>(url);
-        return response.data;
+        return await apiClient.get<ApiResponse<{ batches: ProductBatch[] }>>(url);
     },
 
     create: async (data: Partial<ProductBatch>) => {
-        const response = await apiClient.post<ApiResponse<{ batch: ProductBatch }>>('/api/batches', data);
-        return response.data;
+        return await apiClient.post<ApiResponse<{ batch: ProductBatch }>>('/api/batches', data);
     },
 
     getExpiringSoon: async (days: number = 30) => {
-        const response = await apiClient.get<ApiResponse<{ batches: any[] }>>(`/api/batches/expiring?days=${days}`);
-        return response.data;
+        return await apiClient.get<ApiResponse<{ batches: any[] }>>(`/api/batches/expiring?days=${days}`);
     },
 
     updateStatus: async (id: string, status: string) => {
-        const response = await apiClient.patch<ApiResponse<{ batch: ProductBatch }>>(`/api/batches/${id}/status`, { status });
-        return response.data;
+        return await apiClient.patch<ApiResponse<{ batch: ProductBatch }>>(`/api/batches/${id}/status`, { status });
     }
 };

@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import { apiClient } from './apiClient';
 
 export interface VoidSaleParams {
     reason: string;
@@ -34,32 +34,32 @@ export const invoiceApi = {
      * Void a sale (Manager only)
      */
     voidSale: async (id: string, params: VoidSaleParams): Promise<VoidSaleResult> => {
-        const response = await apiClient.post(`/invoices/${id}/void`, params);
-        return response.data.data.result;
+        const response = await apiClient.post<any>(`/invoices/${id}/void`, params);
+        return response.data.result;
     },
 
     /**
      * Track invoice print/reprint
      */
     trackPrint: async (id: string): Promise<{ printCount: number; isReprint: boolean }> => {
-        const response = await apiClient.post(`/invoices/${id}/track-print`);
-        return response.data.data;
+        const response = await apiClient.post<any>(`/invoices/${id}/track-print`);
+        return response.data;
     },
 
     /**
      * Get audit trail for a specific invoice
      */
     getAuditTrail: async (id: string): Promise<AuditLogEntry[]> => {
-        const response = await apiClient.get(`/invoices/${id}/audit-trail`);
-        return response.data.data.trail;
+        const response = await apiClient.get<any>(`/invoices/${id}/audit-trail`);
+        return response.data.trail;
     },
 
     /**
      * Get global audit trail
      */
     getGlobalAuditTrail: async (page = 1, limit = 20): Promise<{ trail: AuditLogEntry[]; total: number }> => {
-        const response = await apiClient.get(`/invoices/audit-trail?page=${page}&limit=${limit}`);
-        return response.data.data;
+        const response = await apiClient.get<any>(`/invoices/audit-trail?page=${page}&limit=${limit}`);
+        return response.data;
     },
 
     /**
@@ -70,7 +70,7 @@ export const invoiceApi = {
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
 
-        const response = await apiClient.get(`/invoices/voided?${params.toString()}`);
-        return response.data.data;
+        const response = await apiClient.get<any>(`/invoices/voided?${params.toString()}`);
+        return response.data;
     }
 };
