@@ -16,6 +16,8 @@ import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModa
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { BatchManagementModal } from '@/components/inventory/BatchManagementModal';
+import { Package } from 'lucide-react';
 
 type ProductStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 
@@ -52,9 +54,10 @@ const InventorySkeleton = () => (
 
 export const InventoryScreen: React.FC = () => {
   const { user } = useAuth();
-  const canManage = user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager' || user?.role === 'inventory_manager' || user?.role === 'VENDOR_ADMIN' || user?.role === 'vendor_admin';
   const { products, addProduct, updateProduct, deleteProduct, refreshProducts, loading } = useProductContext();
   const { toast } = useToast();
+
+  const canManage = user && ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(user.role);
 
   if (loading) return <InventorySkeleton />;
 
@@ -64,9 +67,11 @@ export const InventoryScreen: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
+  const [batchProduct, setBatchProduct] = useState<Product | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [productsToPrint, setProductsToPrint] = useState<Product[]>([]);
   const [productCategories, setProductCategories] = useState<string[]>([
@@ -164,6 +169,12 @@ export const InventoryScreen: React.FC = () => {
     if (!canManage) return;
     setEditingProduct(null);
     setIsAddModalOpen(true);
+  };
+
+  const handleBatchClick = (product: Product) => {
+    if (!canManage) return;
+    setBatchProduct(product);
+    setIsBatchModalOpen(true);
   };
 
   const handlePrintBarcode = (product: Product) => {
@@ -354,6 +365,9 @@ export const InventoryScreen: React.FC = () => {
                     {canManage && (
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" className="h-10 w-10 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl" onClick={() => handleBatchClick(product)} title="Manage Batches">
+                            <Package className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-10 w-10 text-purple-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl" onClick={() => handlePrintBarcode(product)} title="Print Barcode">
                             <FiPrinter className="h-4 w-4" />
                           </Button>
@@ -416,6 +430,9 @@ export const InventoryScreen: React.FC = () => {
 
                   {canManage && (
                     <div className="flex gap-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-indigo-50 hover:text-indigo-600 border-slate-100 h-10" onClick={() => handleBatchClick(product)}>
+                        <Package className="h-3 w-3" /> Batches
+                      </Button>
                       <Button variant="outline" size="sm" className="flex-1 gap-2 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-purple-50 hover:text-purple-600 border-slate-100 h-10" onClick={() => handlePrintBarcode(product)}>
                         <FiPrinter className="h-3 w-3" /> Print
                       </Button>
@@ -454,6 +471,13 @@ export const InventoryScreen: React.FC = () => {
         isOpen={isPrintModalOpen}
         onClose={() => { setIsPrintModalOpen(false); setProductsToPrint([]); setSelectedProducts(new Set()); }}
         products={productsToPrint}
+      />
+
+      <BatchManagementModal
+        isOpen={isBatchModalOpen}
+        onClose={() => { setIsBatchModalOpen(false); setBatchProduct(null); }}
+        product={batchProduct}
+        onSuccess={() => refreshProducts()}
       />
     </div >
   );

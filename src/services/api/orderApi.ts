@@ -1,10 +1,19 @@
 import { apiClient } from './apiClient';
-import { db } from '@/db/db';
+import { syncManager } from '@/services/syncManager';
 import { toast } from '@/hooks/use-toast';
 import type { PaymentMethod } from '@/types/payment';
 import { v4 as uuidv4 } from 'uuid';
 
-type CreateOrderItem = { productId: string; quantity: number };
+type CreateOrderItem = {
+  productId: string;
+  quantity: number;
+  name?: string;
+  price?: number;
+  total?: number;
+  originalPrice?: number;
+  overrideReason?: string;
+  authorizedBy?: string;
+};
 
 export type CreateOrderPayload = {
   items: CreateOrderItem[];
@@ -52,7 +61,16 @@ export const orderApi = {
     // ============================================================================
     const idempotencyKey = uuidv4();
     const apiPayload = {
-      items: payload.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+      items: payload.items.map((i) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+        name: i.name,
+        price: i.price,
+        total: i.total,
+        originalPrice: i.originalPrice,
+        overrideReason: i.overrideReason,
+        authorizedBy: i.authorizedBy
+      })),
       discountAmount: payload.discountAmount ?? 0,
       paymentMethod: mapToBackendPaymentMethod(payload.paymentMethod),
       paymentDetails: payload.paymentDetails,
@@ -63,12 +81,9 @@ export const orderApi = {
     };
 
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      console.log('[OrderApi] Offline mode. Saving local.');
-      await db.offlineSales.add({
-        data: apiPayload,
-        created_at: Date.now(),
-        retry_count: 0
-      });
+      console.log('[OrderApi] Offline mode detected. Queueing for sync.');
+      await syncManager.queueSale(apiPayload);
+
       return {
         id: 'OFFLINE-' + Date.now(),
         invoice_number: 'PENDING-SYNC',
@@ -80,10 +95,7 @@ export const orderApi = {
     }
 
     try {
-      const res = await apiClient.request<BackendOrderResponse>('/api/orders', {
-        method: 'POST',
-        json: apiPayload
-      });
+      const res = await apiClient.post<BackendOrderResponse>('/api/orders', apiPayload);
 
       const o = res.data?.order || (res.data as any)?.sale;
 
@@ -98,15 +110,18 @@ export const orderApi = {
         totalAmount: o.total_amount || 0
       };
     } catch (error: any) {
-      // Fallback for network errors
-      if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
-        console.warn('[OrderApi] Network error. Saving offline.');
-        await db.offlineSales.add({
-          data: apiPayload,
-          created_at: Date.now(),
-          retry_count: 0
+      // Fallback for network errors (not server errors like 400/500)
+      const isNetworkError = error.message === 'Failed to fetch' || error.name === 'TypeError';
+
+      if (isNetworkError) {
+        console.warn('[OrderApi] Network error encountered. Queueing offline.');
+        await syncManager.queueSale(apiPayload);
+
+        toast({
+          title: "Network Error",
+          description: "Transaction saved locally and will sync when connection is restored.",
+          variant: "destructive"
         });
-        toast({ title: "Network Disconnected", description: "Transaction saved locally.", variant: "destructive" });
 
         return {
           id: 'OFFLINE-' + Date.now(),

@@ -1,7 +1,10 @@
 import type { Product } from "./product"
 
 export interface CartItem extends Product {
-    quantity: number
+    quantity: number;
+    originalPrice?: number;
+    overrideReason?: string;
+    authorizedBy?: string; // Manager ID
 }
 
 export interface Sale {

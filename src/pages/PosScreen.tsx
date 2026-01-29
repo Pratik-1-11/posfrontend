@@ -30,17 +30,23 @@ import { useToast } from '@/hooks/use-toast';
 import { orderApi } from '@/services/api/orderApi';
 import { reportApi } from '@/services/api/reportApi';
 import { canAccessDashboard, isManager } from '@/utils/permissions';
+import { useShift } from '@/context/ShiftContext';
+import { OpenShiftModal } from '@/components/pos/OpenShiftModal';
 
 import type { PaymentMethod } from '@/types/payment';
 import type { Customer } from '@/types/customer';
 import type { Product } from '@/types/product';
 import type { CartItem } from '@/types/sales';
+import { Lock, PlayCircle } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export const PosScreen: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { isSidebarCollapsed } = useLayout();
   const { products, refresh, loading: productsLoading } = useProductContext();
+  const { isShiftOpen, isLoading: shiftLoading } = useShift();
+  const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
 
   // Queries
   const { data: reportData, refetch: refetchStats } = useQuery({
@@ -159,6 +165,23 @@ export const PosScreen: React.FC = () => {
   const clearCart = useCallback(() => {
     setCartItems([]);
     playBeep();
+  }, []);
+
+  const updateItemPrice = useCallback((id: string, newPrice: number, reason: string, authorizedBy: string) => {
+    setCartItems(prev => prev.map(item => {
+      if (item.id === id) {
+        // Only set originalPrice if it hasn't been set yet (first override)
+        const originalPrice = item.originalPrice || item.price;
+        return {
+          ...item,
+          price: newPrice,
+          originalPrice,
+          overrideReason: reason,
+          authorizedBy
+        };
+      }
+      return item;
+    }));
   }, []);
 
   const handleReprintLastInvoice = useCallback(() => {
@@ -331,6 +354,37 @@ export const PosScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] bg-slate-50 overflow-hidden relative">
+      {!isShiftOpen && !shiftLoading && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center backdrop-blur-md bg-slate-900/40 animate-in fade-in duration-500">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="max-w-md w-full mx-4 bg-white rounded-3xl shadow-2xl p-8 text-center space-y-6"
+          >
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+              <Lock size={40} className="text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black text-slate-900">POS Locked</h2>
+              <p className="text-slate-500 font-medium">
+                You must open a shift session before you can process any sales.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="w-full h-14 text-lg font-bold gap-3 rounded-2xl shadow-xl shadow-primary/30"
+              onClick={() => setShowOpenShiftModal(true)}
+            >
+              <PlayCircle size={24} />
+              Open New Shift
+            </Button>
+            <p className="text-xs text-slate-400">
+              Shift tracking is required for accurate cash reconciliation and IRD compliance.
+            </p>
+          </motion.div>
+        </div>
+      )}
+
       {/* Products Canvas */}
       <main className={`flex-1 flex flex-col p-4 md:p-6 pb-24 lg:pb-6 space-y-6 overflow-y-auto no-print scrollbar-hide ${showMobileCart ? 'hidden lg:flex' : ''}`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -414,6 +468,7 @@ export const PosScreen: React.FC = () => {
             onShowHeldBills={heldBillsModal.open}
             onReprintLastInvoice={handleReprintLastInvoice}
             onProcessPayment={paymentModal.open}
+            onUpdatePrice={updateItemPrice}
             isSidebarCollapsed={isSidebarCollapsed}
             customerSlot={
               <CustomerSelect
@@ -479,6 +534,11 @@ export const PosScreen: React.FC = () => {
         heldBills={heldBills}
         onRetrieve={handleRetrieveBill}
         onDelete={deleteBill}
+      />
+
+      <OpenShiftModal
+        isOpen={showOpenShiftModal}
+        onClose={() => setShowOpenShiftModal(false)}
       />
 
       {/* Print Overlay */}

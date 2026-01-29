@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
@@ -85,6 +86,11 @@ export const ReportsScreen: React.FC = () => {
   const { data: purchaseStats = [], isLoading: purchasesLoading } = useQuery({
     queryKey: ['report-purchases'],
     queryFn: reportApi.getPurchaseSummary
+  });
+
+  const { data: profitData } = useQuery({
+    queryKey: ['report-profit', startDate, endDate],
+    queryFn: () => reportApi.getProfitAnalysis({ startDate, endDate })
   });
 
   const handleDateRangeChange = (value: string) => {
@@ -298,6 +304,7 @@ export const ReportsScreen: React.FC = () => {
         <TabsList className="bg-white/50 p-1 rounded-xl shadow-sm border mb-6">
           <TabsTrigger value="sales" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Sales Trends</TabsTrigger>
           <TabsTrigger value="products" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Product Performance</TabsTrigger>
+          <TabsTrigger value="profit" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Profit Analysis</TabsTrigger>
           <TabsTrigger value="expenses" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Expense Analysis</TabsTrigger>
         </TabsList>
 
@@ -338,6 +345,74 @@ export const ReportsScreen: React.FC = () => {
                 </ResponsiveContainer>
               </div>
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="profit" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-blue-50/50 border-blue-100 shadow-none">
+              <CardContent className="p-6">
+                <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">Total Revenue</p>
+                <h3 className="text-2xl font-black text-slate-900">Rs.{profitData?.summary?.totalRevenue?.toLocaleString() || 0}</h3>
+              </CardContent>
+            </Card>
+            <Card className="bg-amber-50/50 border-amber-100 shadow-none">
+              <CardContent className="p-6">
+                <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-1">Total Cost</p>
+                <h3 className="text-2xl font-black text-slate-900">Rs.{profitData?.summary?.totalCost?.toLocaleString() || 0}</h3>
+              </CardContent>
+            </Card>
+            <Card className="bg-emerald-50/50 border-emerald-100 shadow-none">
+              <CardContent className="p-6">
+                <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">Gross Profit</p>
+                <h3 className="text-2xl font-black text-slate-900">Rs.{profitData?.summary?.totalProfit?.toLocaleString() || 0}</h3>
+                <p className="text-xs font-bold text-emerald-600 mt-1">Margin: {profitData?.summary?.averageMargin?.toFixed(2)}%</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-none shadow-md overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500">Date</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500">Invoice</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500">Product</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500 text-center">Qty</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500 text-right">Selling</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500 text-right">Cost</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500 text-right">Profit</th>
+                    <th className="p-4 text-[10px] font-black uppercase text-slate-500 text-right">Margin</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {profitData?.report?.map((item: any, i: number) => (
+                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-4 text-xs font-medium text-slate-600">{format(parseISO(item.sale_date), 'MMM dd, HH:mm')}</td>
+                      <td className="p-4 text-xs font-bold text-slate-900">{item.invoice_number?.split('-')?.pop() || 'N/A'}</td>
+                      <td className="p-4">
+                        <div className="text-xs font-bold text-slate-900">{item.product_name}</div>
+                      </td>
+                      <td className="p-4 text-xs font-black text-slate-600 text-center">{item.quantity}</td>
+                      <td className="p-4 text-xs font-bold text-slate-600 text-right">Rs.{item.selling_price}</td>
+                      <td className="p-4 text-xs font-bold text-slate-400 text-right italic">Rs.{item.cost_price}</td>
+                      <td className="p-4 text-xs font-black text-emerald-600 text-right">Rs.{Number(item.line_profit).toFixed(2)}</td>
+                      <td className="p-4 text-right">
+                        <Badge variant={item.profit_margin_percent > 20 ? 'success' : item.profit_margin_percent > 10 ? 'warning' : 'destructive'} className="text-[10px] font-black">
+                          {Number(item.profit_margin_percent).toFixed(1)}%
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                  {!profitData?.report?.length && (
+                    <tr>
+                      <td colSpan={8} className="p-12 text-center text-slate-400 font-bold">No profit data found for this period.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </Card>
         </TabsContent>
 

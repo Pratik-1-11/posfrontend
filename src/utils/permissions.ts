@@ -1,29 +1,67 @@
 // Role-based permission utilities
+import type { Role } from '../types/user';
 
-export const isSuperAdmin = (role?: string) => {
-    const r = role?.toLowerCase();
-    return r === 'super_admin' || r === 'super-admin' || r === 'superadmin';
+export const isSuperAdmin = (role?: Role | string): boolean => {
+    return role === 'SUPER_ADMIN';
 };
 
-export const isAdmin = (role?: string) => {
-    const r = role?.toLowerCase();
-    return r === 'admin' || isSuperAdmin(role) || r === 'vendor_admin';
+export const isVendorAdmin = (role?: Role | string): boolean => {
+    return role === 'VENDOR_ADMIN' || isSuperAdmin(role);
 };
 
-export const isManager = (role?: string) => {
-    const r = role?.toLowerCase();
-    return isAdmin(role) || r === 'manager' || r === 'vendor_manager' || r === 'branch_admin';
+export const isManager = (role?: Role | string): boolean => {
+    return role === 'VENDOR_MANAGER' || isVendorAdmin(role);
 };
 
-export const isStaff = (role?: string) => {
-    const r = role?.toLowerCase();
-    return isManager(role) || r === 'cashier' || r === 'waiter' || r === 'inventory_manager';
+export const isStaff = (role?: Role | string): boolean => {
+    return ['CASHIER', 'WAITER', 'INVENTORY_MANAGER'].includes(role as string) || isManager(role);
 };
 
-export const canViewReports = (role?: string) => isManager(role);
-export const canManageInventory = (role?: string) => isManager(role) || role?.toLowerCase() === 'inventory_manager';
-export const canManageEmployees = (role?: string) => isAdmin(role) || role?.toLowerCase() === 'branch_admin';
-export const canAccessDashboard = (role?: string) => isManager(role) || role?.toLowerCase() === 'inventory_manager';
-export const canAccessPos = (role?: string) => isStaff(role);
-export const canManageSettings = (role?: string) => isAdmin(role);
-export const canManageStores = (role?: string) => isAdmin(role) || role?.toLowerCase() === 'branch_admin';
+// Specific permission checks
+export const canViewReports = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER'].includes(role as string);
+};
+
+export const canManageInventory = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(role as string);
+};
+
+export const canManageEmployees = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN'].includes(role as string);
+};
+
+export const canAccessDashboard = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(role as string);
+};
+
+export const canAccessPos = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER', 'WAITER'].includes(role as string);
+};
+
+export const canManageSettings = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN'].includes(role as string);
+};
+
+export const canManageStores = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN'].includes(role as string);
+};
+
+// Additional granular permissions
+export const canVoidSales = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER'].includes(role as string);
+};
+
+export const canViewProfitMargins = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN'].includes(role as string);
+};
+
+export const canManageExpenses = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER'].includes(role as string);
+};
+
+export const canViewCreditRecovery = (role?: Role | string): boolean => {
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER'].includes(role as string);
+};
+
+// Legacy compatibility - keeping for gradual migration
+export const isAdmin = isVendorAdmin;

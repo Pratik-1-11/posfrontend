@@ -32,11 +32,10 @@ export const LoginScreen = () => {
 
       const user = await login(email, password);
 
-      const { isSuperAdmin, isAdmin } = await import("@/utils/permissions");
-
-      if (isSuperAdmin(user.role)) {
+      // Navigate based on role
+      if (user.role === 'SUPER_ADMIN') {
         navigate("/admin");
-      } else if (isAdmin(user.role)) {
+      } else if (['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(user.role)) {
         navigate("/dashboard");
       } else {
         navigate("/pos");

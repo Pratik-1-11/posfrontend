@@ -226,7 +226,14 @@ const DashboardContent: React.FC = () => {
                         onClick={() => navigate('/inventory')}
                         className={(health?.lowStockAlerts || 0) > 0 ? "border-red-100" : ""}
                     />
-
+                    <DashboardCard
+                        title="Expiring Soon"
+                        value={`${health?.expiringSoon || 0}`}
+                        icon={AlertTriangle}
+                        description={(health?.expiringSoon || 0) > 0 ? "Check batches" : "No near expiry"}
+                        onClick={() => navigate('/inventory')}
+                        className={(health?.expiringSoon || 0) > 0 ? "border-orange-100" : ""}
+                    />
                 </div>
 
                 {/* Quick Actions */}

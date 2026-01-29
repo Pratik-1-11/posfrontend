@@ -12,6 +12,7 @@ import { CartProvider } from '@/context/CartContext';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { OfflineProvider } from '@/context/OfflineContext';
+import { ShiftProvider } from '@/context/ShiftContext';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -31,25 +32,27 @@ function App() {
       <ThemeProvider>
         <OfflineProvider>
           <AuthProvider>
-            <SettingsProvider>
-              <CustomerProvider>
-                <ProductProvider>
-                  <ExpenseProvider>
-                    <PurchaseProvider>
-                      <CartProvider>
-                        <HoldBillProvider>
-                          <div className="min-h-screen bg-gray-50 text-gray-900">
-                            <AppRouter />
-                            <Toaster />
-                          </div>
-                          <ReactQueryDevtools initialIsOpen={false} />
-                        </HoldBillProvider>
-                      </CartProvider>
-                    </PurchaseProvider>
-                  </ExpenseProvider>
-                </ProductProvider>
-              </CustomerProvider>
-            </SettingsProvider>
+            <ShiftProvider>
+              <SettingsProvider>
+                <CustomerProvider>
+                  <ProductProvider>
+                    <ExpenseProvider>
+                      <PurchaseProvider>
+                        <CartProvider>
+                          <HoldBillProvider>
+                            <div className="min-h-screen bg-gray-50 text-gray-900">
+                              <AppRouter />
+                              <Toaster />
+                            </div>
+                            <ReactQueryDevtools initialIsOpen={false} />
+                          </HoldBillProvider>
+                        </CartProvider>
+                      </PurchaseProvider>
+                    </ExpenseProvider>
+                  </ProductProvider>
+                </CustomerProvider>
+              </SettingsProvider>
+            </ShiftProvider>
           </AuthProvider>
         </OfflineProvider>
       </ThemeProvider>

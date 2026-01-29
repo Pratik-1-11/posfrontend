@@ -24,6 +24,7 @@
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "dexie": "^4.2.1",
+    "dexie-react-hooks": "^4.2.0",
     "framer-motion": "^12.23.26",
     "jsbarcode": "^3.12.3",
     "jspdf": "^3.0.4",

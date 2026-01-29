@@ -44,6 +44,7 @@ export interface PurchaseSummary {
 export interface HealthOverview {
     activeCashiers: number;
     lowStockAlerts: number;
+    expiringSoon: number;
     pendingCredits: number;
     failedTransactions: number;
 }
@@ -124,6 +125,12 @@ export const reportApi = {
     getPurchaseSummary: async (): Promise<PurchaseSummary[]> => {
         const res = await apiClient.request<{ status: string; data: { stats: PurchaseSummary[] } }>('/api/reports/purchases');
         return res.data.stats;
+    },
+
+    getProfitAnalysis: async (params?: { startDate?: string, endDate?: string, branchId?: string }) => {
+        const query = params ? `?${new URLSearchParams(params).toString()}` : '';
+        const response = await apiClient.get<any>(`/api/reports/profit${query}`); // Assuming ApiResponse<{ report: any[], summary: any }> is not defined or needs to be imported, using 'any' for simplicity based on the instruction's snippet.
+        return response.data;
     },
 
     getVatReport: async (year: number, month: number): Promise<{ report: VatReport[], summary: VatReportSummary }> => {

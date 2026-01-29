@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShoppingCart,
   Package,
@@ -19,13 +19,12 @@ import {
   ChevronDown,
   Check,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  History
 } from 'lucide-react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminTenants } from '@/hooks/admin/useAdminTenants';
-import { useState } from 'react';
-
 
 interface SidebarProps {
   isOpen: boolean;
@@ -50,48 +49,49 @@ const navSections: NavSection[] = [
   {
     title: 'System',
     items: [
-      { to: '/admin/tenants', icon: Building2, label: 'Tenants', roles: ['super_admin', 'super-admin'] },
-      { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrades', roles: ['super_admin', 'super-admin'] },
-      { to: '/admin/subscriptions', icon: CreditCard, label: 'Plans', roles: ['super_admin', 'super-admin'] },
-      { to: '/admin/console', icon: Terminal, label: 'Console', roles: ['super_admin', 'super-admin'] },
+      { to: '/admin/tenants', icon: Building2, label: 'Tenants', roles: ['SUPER_ADMIN'] },
+      { to: '/admin/upgrade-requests', icon: ShieldCheck, label: 'Upgrades', roles: ['SUPER_ADMIN'] },
+      { to: '/admin/subscriptions', icon: CreditCard, label: 'Plans', roles: ['SUPER_ADMIN'] },
+      { to: '/admin/console', icon: Terminal, label: 'Console', roles: ['SUPER_ADMIN'] },
     ]
   },
   {
     title: 'Overview',
     items: [
-      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'] },
     ]
   },
   {
     title: 'Operations',
     items: [
-      { to: '/pos', icon: ShoppingCart, label: 'POS Terminal', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier', 'waiter'] },
-      { to: '/products', icon: Package, label: 'Inventory', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager', 'cashier'] },
-      { to: '/purchases', icon: PackagePlus, label: 'Stock In', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'inventory_manager'] },
-      { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
-      { to: '/expenses', icon: DollarSign, label: 'Expenses', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+      { to: '/pos', icon: ShoppingCart, label: 'POS Terminal', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER', 'WAITER'] },
+      { to: '/sales', icon: History, label: 'Sales History', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER'] },
+      { to: '/products', icon: Package, label: 'Inventory', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER', 'CASHIER'] },
+      { to: '/purchases', icon: PackagePlus, label: 'Stock In', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'] },
+      { to: '/returns', icon: RefreshCw, label: 'Returns', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER'] },
+      { to: '/expenses', icon: DollarSign, label: 'Expenses', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
     ]
   },
   {
     title: 'Relationships',
     items: [
-      { to: '/customers', icon: Users, label: 'Customers', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager', 'cashier'] },
-      { to: '/customers/recovery', icon: Clock, label: 'Recoveries', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
-      { to: '/employees', icon: Users, label: 'Staff Management', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+      { to: '/customers', icon: Users, label: 'Customers', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER', 'WAITER'] },
+      { to: '/customers/recovery', icon: Clock, label: 'Recoveries', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
+      { to: '/employees', icon: Users, label: 'Staff Management', roles: ['VENDOR_ADMIN'] },
     ]
   },
   {
     title: 'Analytics',
     items: [
-      { to: '/reports', icon: BarChart2, label: 'Sales Reports', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
-      { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Book', roles: ['admin', 'vendor_admin', 'branch_admin', 'manager', 'vendor_manager'] },
+      { to: '/reports', icon: BarChart2, label: 'Sales Reports', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
+      { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Book', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
     ]
   },
   {
     title: 'Settings',
     items: [
-      { to: '/stores', icon: Building2, label: 'Branch Profiles', roles: ['admin', 'vendor_admin', 'branch_admin'] },
-      { to: '/settings', icon: Settings, label: 'General Settings', roles: ['admin', 'vendor_admin', 'branch_admin'] },
+      { to: '/stores', icon: Building2, label: 'Branch Profiles', roles: ['VENDOR_ADMIN'] },
+      { to: '/settings', icon: Settings, label: 'General Settings', roles: ['VENDOR_ADMIN'] },
     ]
   }
 ];
@@ -187,9 +187,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, o
   };
 
   const renderNavSection = (section: NavSection) => {
-    const userRole = user?.role?.toLowerCase();
+    const userRole = user?.role;
     const filteredItems = section.items.filter(item =>
-      item.roles.some(r => r.toLowerCase() === userRole)
+      item.roles.includes(userRole as string)
     );
 
     if (filteredItems.length === 0) return null;
@@ -272,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isCollapsed = false, o
         </div>
 
         {/* Tenant Switcher (Super Admin Context) */}
-        {!isCollapsed && (user?.role?.toLowerCase() === 'super_admin' || user?.role?.toLowerCase() === 'super-admin') && (
+        {!isCollapsed && user?.role === 'SUPER_ADMIN' && (
           <TenantSwitcher onClose={onClose} />
         )}
 

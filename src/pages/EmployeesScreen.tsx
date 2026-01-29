@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -16,6 +16,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
+    DialogDescription,
 } from "@/components/ui/Dialog";
 import { Label } from "@/components/ui/Label";
 import {
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/Select";
 import { useToast } from "@/hooks/use-toast";
 import { employeeApi } from "@/services/api/employeeApi";
+import { managerApi } from "@/services/api/managerApi";
 import type { User, Role } from "@/types/user";
 
 export const EmployeesScreen = () => {
@@ -34,12 +36,16 @@ export const EmployeesScreen = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState<User | null>(null);
+    const [pinEmployee, setPinEmployee] = useState<User | null>(null);
+    const [newPin, setNewPin] = useState("");
+    const [isPinSubmitting, setIsPinSubmitting] = useState(false);
     const [formData, setFormData] = useState<Partial<User>>({
         name: "",
         username: "",
         email: "",
-        role: "cashier",
+        role: "CASHIER",
     });
     const { toast } = useToast();
 
@@ -77,10 +83,48 @@ export const EmployeesScreen = () => {
                 name: "",
                 username: "",
                 email: "",
-                role: "cashier",
+                role: "CASHIER",
             });
         }
         setIsModalOpen(true);
+    };
+
+    const handleOpenPinModal = (employee: User) => {
+        setPinEmployee(employee);
+        setNewPin("");
+        setIsPinModalOpen(true);
+    };
+
+    const handlePinSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!pinEmployee) return;
+
+        if (newPin.length < 4) {
+            toast({
+                title: "Invalid PIN",
+                description: "PIN must be at least 4 digits",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            setIsPinSubmitting(true);
+            await managerApi.updatePin(pinEmployee.id, newPin);
+            toast({
+                title: "Success",
+                description: `Authorization PIN updated for ${pinEmployee.name}`,
+            });
+            setIsPinModalOpen(false);
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update PIN",
+                variant: "destructive",
+            });
+        } finally {
+            setIsPinSubmitting(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -179,9 +223,21 @@ export const EmployeesScreen = () => {
                                     <TableCell className="font-medium">{employee.name}</TableCell>
                                     <TableCell>{employee.username}</TableCell>
                                     <TableCell>{employee.email}</TableCell>
-                                    <TableCell className="capitalize">{employee.role}</TableCell>
+                                    <TableCell className="capitalize">{employee.role.toLowerCase().replace('_', ' ')}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
+                                            {/* PIN Button - Allow for Admins and Managers */}
+                                            {['VENDOR_ADMIN', 'VENDOR_MANAGER'].includes(employee.role) && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    title="Set Authorization PIN"
+                                                    className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                                    onClick={() => handleOpenPinModal(employee)}
+                                                >
+                                                    <ShieldCheck className="h-4 w-4" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -206,6 +262,7 @@ export const EmployeesScreen = () => {
                 </Table>
             </div>
 
+            {/* Employee Add/Edit Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -262,10 +319,11 @@ export const EmployeesScreen = () => {
                                     <SelectValue placeholder="Select role" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="cashier">Cashier</SelectItem>
-                                    <SelectItem value="waiter">Waiter</SelectItem>
-                                    <SelectItem value="manager">Manager</SelectItem>
+                                    <SelectItem value="VENDOR_ADMIN">Admin</SelectItem>
+                                    <SelectItem value="VENDOR_MANAGER">Manager</SelectItem>
+                                    <SelectItem value="CASHIER">Cashier</SelectItem>
+                                    <SelectItem value="INVENTORY_MANAGER">Inventory Manager</SelectItem>
+                                    <SelectItem value="WAITER">Waiter</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -274,6 +332,58 @@ export const EmployeesScreen = () => {
                                 Cancel
                             </Button>
                             <Button type="submit">Save</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Authorization PIN Modal */}
+            <Dialog open={isPinModalOpen} onOpenChange={setIsPinModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <ShieldCheck className="h-5 w-5 text-amber-600" />
+                            Security Configuration
+                        </DialogTitle>
+                        <DialogDescription>
+                            Set a secure 4-digit PIN for <span className="font-bold text-slate-900">{pinEmployee?.name}</span>.
+                            This PIN will be used to authorize price overrides and voids.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePinSubmit} className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="pin" className="text-sm font-bold">Manager Authorization PIN</Label>
+                            <Input
+                                id="pin"
+                                type="password"
+                                placeholder="Enter 4-digit PIN"
+                                value={newPin}
+                                maxLength={6}
+                                onChange={(e) => setNewPin(e.target.value)}
+                                className="text-center tracking-[1em] text-2xl font-black h-12"
+                                autoFocus
+                                required
+                            />
+                            <p className="text-[10px] text-slate-500 text-center">
+                                PIN must be numeric and at least 4 digits.
+                            </p>
+                        </div>
+                        <DialogFooter className="sm:justify-between gap-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => setIsPinModalOpen(false)}
+                                disabled={isPinSubmitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="bg-amber-600 hover:bg-amber-700 text-white"
+                                disabled={isPinSubmitting || newPin.length < 4}
+                            >
+                                {isPinSubmitting ? "Updating..." : "Update Security PIN"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>

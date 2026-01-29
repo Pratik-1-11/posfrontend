@@ -1,14 +1,9 @@
 import React from 'react';
-import { Plus, Minus, Trash2, ShoppingCart, X, CreditCard, Pause, Play, RotateCcw, TrendingUp } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingCart, X, CreditCard, Pause, Play, RotateCcw, TrendingUp, Edit3, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/utils/currency';
-
-interface CartItem {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-}
+import { PriceOverrideModal } from './PriceOverrideModal';
+import type { CartItem } from '@/types/sales';
 
 interface CartSectionProps {
     items: CartItem[];
@@ -25,6 +20,7 @@ interface CartSectionProps {
     onShowHeldBills: () => void;
     onReprintLastInvoice: () => void;
     onProcessPayment: () => void;
+    onUpdatePrice?: (id: string, newPrice: number, reason: string, authorizedBy: string) => void;
     isSidebarCollapsed?: boolean;
     customerSlot?: React.ReactNode;
 }
@@ -44,10 +40,20 @@ export const CartSection: React.FC<CartSectionProps> = ({
     onShowHeldBills,
     onReprintLastInvoice,
     onProcessPayment,
+    onUpdatePrice,
     isSidebarCollapsed = false,
     customerSlot
 }) => {
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+    const [overrideItem, setOverrideItem] = React.useState<CartItem | null>(null);
+    const [isOverrideModalOpen, setIsOverrideModalOpen] = React.useState(false);
+
+    const handlePriceClick = (item: CartItem) => {
+        if (!onUpdatePrice) return;
+        setOverrideItem(item);
+        setIsOverrideModalOpen(true);
+    };
 
     return (
         <div className={`
@@ -154,8 +160,20 @@ export const CartSection: React.FC<CartSectionProps> = ({
                                     <div className="flex-1 pr-1.5">
                                         <h4 className="font-black text-slate-800 text-sm line-clamp-1 group-hover:text-primary transition-colors">{item.name}</h4>
                                         <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                                            <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">{formatCurrency(item.price)}</span>
+                                            <button
+                                                onClick={() => handlePriceClick(item)}
+                                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full transition-all hover:ring-1 hover:ring-primary/30 ${item.authorizedBy ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'}`}
+                                            >
+                                                <span className="text-[9px] font-black">{formatCurrency(item.price)}</span>
+                                                <Edit3 size={8} />
+                                                {item.authorizedBy && <ShieldAlert size={8} className="animate-pulse" />}
+                                            </button>
                                             <span className="text-[8px] font-bold text-slate-400">#item-{item.id.slice(-4)}</span>
+                                            {item.originalPrice && (
+                                                <span className="text-[8px] font-bold text-slate-400 line-through">
+                                                    {formatCurrency(item.originalPrice)}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <Button
@@ -229,6 +247,21 @@ export const CartSection: React.FC<CartSectionProps> = ({
                     Process Payment (F9)
                 </button>
             </div>
+
+            {overrideItem && (
+                <PriceOverrideModal
+                    isOpen={isOverrideModalOpen}
+                    onClose={() => {
+                        setIsOverrideModalOpen(false);
+                        setOverrideItem(null);
+                    }}
+                    itemName={overrideItem.name}
+                    originalPrice={overrideItem.originalPrice || overrideItem.price}
+                    onConfirm={(newPrice, reason, managerId) => {
+                        onUpdatePrice?.(overrideItem.id, newPrice, reason, managerId);
+                    }}
+                />
+            )}
         </div>
     );
 };

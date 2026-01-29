@@ -2,7 +2,8 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-rou
 import { useAuth } from '@/context/AuthContext';
 import { Layout } from '@/layouts/Layout';
 import { LoginScreen } from '@/pages/LoginScreen';
-import { isSuperAdmin } from '@/utils/permissions';
+import { AccessDenied } from '@/pages/AccessDenied';
+import type { Role } from '@/types/user';
 import { DashboardScreen } from '@/pages/DashboardScreen';
 import { PosScreen } from '@/pages/PosScreen';
 import { InventoryScreen } from '@/pages/InventoryScreen';
@@ -26,6 +27,7 @@ import SystemConsolePage from '@/pages/admin/SystemConsolePage';
 import { UpgradeRequestsPage } from '@/pages/admin/UpgradeRequestsPage';
 import { StoreManagement } from '@/pages/StoreManagement';
 import { SubscriptionPlansPage } from '@/pages/admin/SubscriptionPlansPage';
+import SalesHistoryScreen from '@/pages/SalesHistoryScreen';
 
 // Layout wrapper for protected routes
 const ProtectedLayout = () => {
@@ -42,36 +44,44 @@ const ProtectedLayout = () => {
     );
 };
 
-// Guard for role-specific routes
-const RoleGuard = ({ roles }: { roles: string[] }) => {
+// Strict role-based guard with security logging
+const StrictRoleGuard = ({ allowedRoles }: { allowedRoles: Role[] }) => {
     const { user } = useAuth();
-    const userRole = user?.role?.toLowerCase();
-    const canAccess = user && (
-        roles.map(r => r.toLowerCase()).includes(userRole as any) ||
-        isSuperAdmin(user.role)
-    );
 
-    if (canAccess) return <Outlet />;
+    if (!user) {
+        console.warn('[SECURITY] Unauthenticated access attempt to protected route');
+        return <Navigate to="/login" replace />;
+    }
 
-    // Redirect logic
-    if (isSuperAdmin(user?.role)) return <Navigate to="/admin" replace />;
-    return <Navigate to="/pos" replace />;
+    const hasAccess = allowedRoles.includes(user.role);
+
+    if (!hasAccess) {
+        console.warn(`[SECURITY] Access denied: User ${user.email} (${user.role}) attempted to access route requiring: ${allowedRoles.join(', ')}`);
+        return <Navigate to="/access-denied" replace />;
+    }
+
+    return <Outlet />;
 };
 
 // Landing page to redirect based on role
 const RoleBasedLanding = () => {
     const { user } = useAuth();
-    const userRole = user?.role?.toLowerCase();
-    if (isSuperAdmin(user?.role)) {
+
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (user.role === 'SUPER_ADMIN') {
         return <Navigate to="/admin" replace />;
     }
 
-    const adminRoles = ['admin', 'manager', 'vendor_admin', 'branch_admin', 'vendor_manager', 'inventory_manager'];
-    if (adminRoles.includes(userRole as string)) {
+    if (['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(user.role)) {
         return <Navigate to="/dashboard" replace />;
     }
+
     return <Navigate to="/pos" replace />;
 };
+
 
 const router = createBrowserRouter([
     {
@@ -79,11 +89,16 @@ const router = createBrowserRouter([
         element: <LoginScreen />
     },
     {
+        path: "/access-denied",
+        element: <AccessDenied />
+    },
+    {
         element: <ProtectedLayout />,
         children: [
+            // Super Admin Routes
             {
                 path: "/admin",
-                element: <RoleGuard roles={[]} />, // Empty roles but RoleGuard allows SUPER_ADMIN
+                element: <StrictRoleGuard allowedRoles={['SUPER_ADMIN']} />,
                 children: [
                     { index: true, element: <Navigate to="/admin/tenants" replace /> },
                     { path: "tenants", element: <TenantListPage /> },
@@ -103,79 +118,121 @@ const router = createBrowserRouter([
                     { path: "subscriptions", element: <SubscriptionPlansPage /> },
                 ]
             },
+            // Root redirect
             {
                 path: "/",
                 element: <RoleBasedLanding />
             },
+            // POS Route - Cashiers, Waiters, Managers, Admins
             {
                 path: "/pos",
-                element: <PosScreen />
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER', 'WAITER']} />,
+                children: [
+                    { index: true, element: <PosScreen /> }
+                ]
             },
+            // Products Route - Inventory Managers, Managers, Admins (Cashiers can view only)
             {
                 path: "/products",
-                element: <InventoryScreen />
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER', 'CASHIER']} />,
+                children: [
+                    { index: true, element: <InventoryScreen /> }
+                ]
             },
+            // Customers Route - Most roles
             {
                 path: "/customers",
-                element: <CustomersScreen />
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER', 'WAITER']} />,
+                children: [
+                    { index: true, element: <CustomersScreen /> }
+                ]
             },
+            // Returns Route
             {
                 path: "/returns",
-                element: <ReturnsScreen />
-            },
-            {
-                element: <RoleGuard roles={['admin', 'super_admin', 'manager', 'VENDOR_ADMIN', 'vendor_admin']} />,
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER']} />,
                 children: [
-                    {
-                        path: "/customers/recovery",
-                        element: <CreditRecoveryScreen />
-                    },
-                    {
-                        path: "/dashboard",
-                        element: <DashboardScreen />
-                    },
-                    {
-                        path: "/purchases",
-                        element: <PurchaseScreen />
-                    },
-                    {
-                        path: "/expenses",
-                        element: <ExpenseScreen />
-                    },
-                    {
-                        path: "/reports",
-                        element: <ReportsScreen />
-                    },
-                    {
-                        path: "/reports/vat",
-                        element: <VatReportScreen />
-                    },
-                    {
-                        path: "/reports/purchase-book",
-                        element: <PurchaseBookScreen />
-                    },
-                    {
-                        path: "/settings",
-                        element: <SettingsScreen />
-                    },
-                    {
-                        path: "/stores",
-                        element: <StoreManagement />
-                    },
+                    { index: true, element: <ReturnsScreen /> }
                 ]
             },
+            // Dashboard - Managers and above
             {
-                element: <RoleGuard roles={['admin', 'super_admin', 'VENDOR_ADMIN', 'vendor_admin']} />,
+                path: "/dashboard",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER']} />,
                 children: [
-                    {
-                        path: "/employees",
-                        element: <EmployeesScreen />
-                    },
+                    { index: true, element: <DashboardScreen /> }
                 ]
             },
+            // Credit Recovery - Managers and above
+            {
+                path: "/customers/recovery",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER']} />,
+                children: [
+                    { index: true, element: <CreditRecoveryScreen /> }
+                ]
+            },
+            // Purchases - Inventory and above
+            {
+                path: "/purchases",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER']} />,
+                children: [
+                    { index: true, element: <PurchaseScreen /> }
+                ]
+            },
+            // Expenses - Managers and above
+            {
+                path: "/expenses",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER']} />,
+                children: [
+                    { index: true, element: <ExpenseScreen /> }
+                ]
+            },
+            // Reports - Managers and above
+            {
+                path: "/reports",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER']} />,
+                children: [
+                    { index: true, element: <ReportsScreen /> },
+                    { path: "vat", element: <VatReportScreen /> },
+                    { path: "purchase-book", element: <PurchaseBookScreen /> },
+                ]
+            },
+            // Settings - Admin only
+            {
+                path: "/settings",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN']} />,
+                children: [
+                    { index: true, element: <SettingsScreen /> }
+                ]
+            },
+            // Stores - Admin only
+            {
+                path: "/stores",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN']} />,
+                children: [
+                    { index: true, element: <StoreManagement /> }
+                ]
+            },
+            // Sales History - Managers and Cashiers
+            {
+                path: "/sales",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER', 'CASHIER']} />,
+                children: [
+                    { index: true, element: <SalesHistoryScreen /> }
+                ]
+            },
+            // Employees - Admin only
+            {
+                path: "/employees",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN']} />,
+                children: [
+                    { index: true, element: <EmployeesScreen /> }
+                ]
+            },
+            // Fallback - redirect to access denied instead of POS
             {
                 path: "*",
-                element: <Navigate to="/pos" replace />
+                element: <Navigate to="/access-denied" replace />
             }
         ]
     }
