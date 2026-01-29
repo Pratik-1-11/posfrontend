@@ -386,6 +386,15 @@ class SuperAdminApi {
         const response = await apiClient.get<{ data: { health_score: number } }>(`/api/admin/tenants/${tenantId}/health`);
         return response.data;
     }
+    async getPlans(): Promise<Plan[]> {
+        const response = await apiClient.get<{ data: Plan[] }>('/api/admin/plans');
+        return response.data;
+    }
+
+    async getPlanDetails(planId: string): Promise<Plan> {
+        const response = await apiClient.get<{ data: Plan }>(`/api/admin/plans/${planId}`);
+        return response.data;
+    }
 }
 
 export interface ActivityLog {
