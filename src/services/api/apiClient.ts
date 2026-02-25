@@ -3,8 +3,8 @@ const TOKEN_KEY = 'pos_access_token';
 export const getApiUrl = () => {
   let url = import.meta.env.VITE_API_URL as string | undefined;
 
-  // If URL is missing or points to a non-existent local/placeholder URL, use the production fallback
-  if (!url || url.trim() === '') {
+  // Safety check: if URL is missing or points to an obsolete environment, use the production fallback
+  if (!url || url.trim() === '' || url.includes('railway.app')) {
     const fallback = 'https://posbackend-gray.vercel.app';
     return fallback;
   }
