@@ -2,14 +2,14 @@ const TOKEN_KEY = 'pos_access_token';
 
 export const getApiUrl = () => {
   let url = import.meta.env.VITE_API_URL as string | undefined;
-  // Safety check: force use correct Vercel backend if old Railway URL is detected or if URL is missing
-  if (!url || url.includes('railway.app') || url.trim() === '') {
+
+  // If URL is missing or points to a non-existent local/placeholder URL, use the production fallback
+  if (!url || url.trim() === '') {
     const fallback = 'https://posbackend-gray.vercel.app';
-    console.warn(`[API] Railway URL or missing URL detected. Forcing fallback to: ${fallback}`);
     return fallback;
   }
+
   const finalized = url.replace(/\/$/, '');
-  console.log(`[API] Using Backend: ${finalized}`);
   return finalized;
 };
 
