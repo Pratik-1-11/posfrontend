@@ -355,9 +355,9 @@ export const InventoryScreen: React.FC = () => {
                         {product.stock}
                       </span>
                     </TableCell>
-                    {canManage && <TableCell className="text-slate-400 font-medium italic">Rs. {product.costPrice.toFixed(0)}</TableCell>}
+                    {canManage && <TableCell className="text-slate-400 font-medium italic">Rs. {(product.costPrice || 0).toFixed(0)}</TableCell>}
                     <TableCell className="text-right">
-                      <span className="font-black text-primary text-lg">Rs. {product.price.toFixed(0)}</span>
+                      <span className="font-black text-primary text-lg">Rs. {(product.price || 0).toFixed(0)}</span>
                     </TableCell>
                     <TableCell className="text-center">
                       <StatusBadge status={product.stock === 0 ? 'out_of_stock' : product.stock < 10 ? 'low_stock' : 'in_stock'} />
@@ -424,7 +424,7 @@ export const InventoryScreen: React.FC = () => {
                     </div>
                     <div className="space-y-1 bg-primary/5 p-3 rounded-2xl">
                       <p className="text-primary/50 text-[9px] uppercase font-black tracking-widest">Price</p>
-                      <p className="font-black text-base text-primary">Rs. {product.price.toFixed(0)}</p>
+                      <p className="font-black text-base text-primary">Rs. {(product.price || 0).toFixed(0)}</p>
                     </div>
                   </div>
 

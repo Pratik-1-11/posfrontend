@@ -129,7 +129,7 @@ export const ExpenseScreen: React.FC = () => {
         format(new Date(e.date), 'yyyy-MM-dd'),
         e.description,
         e.category,
-        e.amount.toFixed(2),
+        (e.amount || 0).toFixed(2),
         e.status
       ]);
       exportToPDF(headers, rows, filename, 'Expense Report');

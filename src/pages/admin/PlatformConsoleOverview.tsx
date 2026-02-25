@@ -70,7 +70,7 @@ export const PlatformConsoleOverview: React.FC = () => {
                             <Activity size={12} className="animate-pulse" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Platform Healthy</span>
                         </div>
-                        <span className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">{stats?.systemUptime.toFixed(3)}% System Stability</span>
+                        <span className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">{(stats?.systemUptime || 0).toFixed(3)}% System Stability</span>
                     </div>
                 </div>
                 <div className="flex gap-3">
