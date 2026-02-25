@@ -17,7 +17,7 @@ export const managerApi = {
      * Verifies a manager PIN and returns manager details if successful
      */
     verifyPin: async (pin: string) => {
-        const response = await apiClient.post<ApiResponse<{ manager: ManagerInfo }>>('/manager/verify-pin', { pin });
+        const response = await apiClient.post<ApiResponse<{ manager: ManagerInfo }>>('/api/manager/verify-pin', { pin });
         return response.data.manager;
     },
 
@@ -25,7 +25,7 @@ export const managerApi = {
      * Updates or sets a manager PIN for a user
      */
     updatePin: async (userId: string, newPin: string) => {
-        const response = await apiClient.post<ApiResponse<void>>('/manager/update-pin', { userId, newPin });
+        const response = await apiClient.post<ApiResponse<void>>('/api/manager/update-pin', { userId, newPin });
         return response.data;
     }
 };

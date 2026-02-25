@@ -34,7 +34,7 @@ export const invoiceApi = {
      * Void a sale (Manager only)
      */
     voidSale: async (id: string, params: VoidSaleParams): Promise<VoidSaleResult> => {
-        const response = await apiClient.post<any>(`/invoices/${id}/void`, params);
+        const response = await apiClient.post<any>(`/api/invoices/${id}/void`, params);
         return response.data.result;
     },
 
@@ -42,7 +42,7 @@ export const invoiceApi = {
      * Track invoice print/reprint
      */
     trackPrint: async (id: string): Promise<{ printCount: number; isReprint: boolean }> => {
-        const response = await apiClient.post<any>(`/invoices/${id}/track-print`);
+        const response = await apiClient.post<any>(`/api/invoices/${id}/track-print`);
         return response.data;
     },
 
@@ -50,7 +50,7 @@ export const invoiceApi = {
      * Get audit trail for a specific invoice
      */
     getAuditTrail: async (id: string): Promise<AuditLogEntry[]> => {
-        const response = await apiClient.get<any>(`/invoices/${id}/audit-trail`);
+        const response = await apiClient.get<any>(`/api/invoices/${id}/audit-trail`);
         return response.data.trail;
     },
 
@@ -58,7 +58,7 @@ export const invoiceApi = {
      * Get global audit trail
      */
     getGlobalAuditTrail: async (page = 1, limit = 20): Promise<{ trail: AuditLogEntry[]; total: number }> => {
-        const response = await apiClient.get<any>(`/invoices/audit-trail?page=${page}&limit=${limit}`);
+        const response = await apiClient.get<any>(`/api/invoices/audit-trail?page=${page}&limit=${limit}`);
         return response.data;
     },
 
@@ -70,7 +70,7 @@ export const invoiceApi = {
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
 
-        const response = await apiClient.get<any>(`/invoices/voided?${params.toString()}`);
+        const response = await apiClient.get<any>(`/api/invoices/voided?${params.toString()}`);
         return response.data;
     }
 };

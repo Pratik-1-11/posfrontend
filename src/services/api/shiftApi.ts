@@ -32,22 +32,22 @@ interface ApiResponse<T> {
 
 export const shiftApi = {
     getCurrent: async () => {
-        const response = await apiClient.get<ApiResponse<Shift | null>>('/shifts/current');
+        const response = await apiClient.get<ApiResponse<Shift | null>>('/api/shifts/current');
         return response.data;
     },
 
     open: async (payload: { startCash: number; notes?: string }) => {
-        const response = await apiClient.post<ApiResponse<Shift>>('/shifts/open', payload);
+        const response = await apiClient.post<ApiResponse<Shift>>('/api/shifts/open', payload);
         return response.data;
     },
 
     close: async (id: string, payload: { actualCash: number; notes?: string }) => {
-        const response = await apiClient.post<ApiResponse<any>>(`/shifts/${id}/close`, payload);
+        const response = await apiClient.post<ApiResponse<any>>(`/api/shifts/${id}/close`, payload);
         return response.data;
     },
 
     getSummary: async (id: string) => {
-        const response = await apiClient.get<ApiResponse<ShiftSummary>>(`/shifts/${id}/summary`);
+        const response = await apiClient.get<ApiResponse<ShiftSummary>>(`/api/shifts/${id}/summary`);
         return response.data;
     }
 };
