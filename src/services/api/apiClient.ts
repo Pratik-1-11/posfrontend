@@ -1,9 +1,19 @@
 const TOKEN_KEY = 'pos_access_token';
 
-const getBaseUrl = () => {
-  const url = import.meta.env.VITE_API_URL as string | undefined;
-  return (url && url.length > 0 ? url : 'https://posbackend-gray.vercel.app').replace(/\/$/, '');
+export const getApiUrl = () => {
+  let url = import.meta.env.VITE_API_URL as string | undefined;
+  // Safety check: force use correct Vercel backend if old Railway URL is detected or if URL is missing
+  if (!url || url.includes('railway.app') || url.trim() === '') {
+    const fallback = 'https://posbackend-gray.vercel.app';
+    console.warn(`[API] Railway URL or missing URL detected. Forcing fallback to: ${fallback}`);
+    return fallback;
+  }
+  const finalized = url.replace(/\/$/, '');
+  console.log(`[API] Using Backend: ${finalized}`);
+  return finalized;
 };
+
+const getBaseUrl = getApiUrl;
 
 export const tokenStorage = {
   get: () => localStorage.getItem(TOKEN_KEY),

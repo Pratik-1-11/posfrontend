@@ -4,7 +4,7 @@
  * API calls for managing tenants, monitoring, and control
  */
 
-import { apiClient } from './apiClient';
+import { apiClient, getApiUrl } from './apiClient';
 
 export interface Tenant {
     id: string;
@@ -234,7 +234,7 @@ class SuperAdminApi {
      */
     async exportTenantData(tenantId: string, format: 'csv' | 'json' = 'json'): Promise<Blob> {
         const token = localStorage.getItem('pos_access_token');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/tenants/${tenantId}/export?format=${format}`, {
+        const response = await fetch(`${getApiUrl()}/api/admin/tenants/${tenantId}/export?format=${format}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         return await response.blob();
