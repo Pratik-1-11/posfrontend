@@ -355,7 +355,7 @@ export const PosScreen: React.FC = () => {
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] bg-slate-50 overflow-hidden relative">
       {!isShiftOpen && !shiftLoading && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center backdrop-blur-md bg-slate-900/40 animate-in fade-in duration-500">
+        <div className="absolute inset-0 z-[40] flex items-center justify-center backdrop-blur-md bg-slate-900/40 animate-in fade-in duration-500">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

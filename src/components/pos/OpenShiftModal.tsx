@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Wallet, PlayCircle } from 'lucide-react';
+import { Wallet, PlayCircle, ShieldCheck } from 'lucide-react';
 import { useShift } from '@/context/ShiftContext';
+import { managerApi } from '@/services/api/managerApi';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface OpenShiftModalProps {
     isOpen: boolean;
@@ -13,17 +16,40 @@ interface OpenShiftModalProps {
 export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onClose }) => {
     const [startCash, setStartCash] = useState<string>('');
     const [notes, setNotes] = useState('');
+    const [pin, setPin] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { openShift } = useShift();
+    const { user } = useAuth();
+    const { toast } = useToast();
+
+    const isManager = user && ['VENDOR_ADMIN', 'VENDOR_MANAGER'].includes(user.role);
 
     const handleOpen = async () => {
         const cash = parseFloat(startCash) || 0;
         try {
             setIsSubmitting(true);
+
+            // If not a manager, require manager PIN for shift opening (compliance)
+            if (!isManager) {
+                if (!pin) {
+                    toast({ title: "Authorization Required", description: "Manager PIN is required to open shift", variant: "destructive" });
+                    return;
+                }
+                await managerApi.verifyPin(pin);
+            }
+
             await openShift(cash, notes);
+            setStartCash('');
+            setNotes('');
+            setPin('');
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
+            toast({
+                title: "Shift Opening Failed",
+                description: error.message || "Invalid credentials or system error",
+                variant: "destructive"
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -51,10 +77,22 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onClose 
                             Starting Cash (Rs.)
                         </label>
                         <Input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="0.00"
                             value={startCash}
-                            onChange={(e) => setStartCash(e.target.value)}
+                            onChange={(e) => {
+                                // Allow only numbers and decimal point
+                                const val = e.target.value;
+                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                    setStartCash(val);
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && startCash) {
+                                    handleOpen();
+                                }
+                            }}
                             autoFocus
                         />
                     </div>
@@ -70,6 +108,23 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onClose 
                             onChange={(e) => setNotes(e.target.value)}
                         />
                     </div>
+
+                    {!isManager && (
+                        <div className="space-y-2 pt-2 border-t mt-2">
+                            <label className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                <ShieldCheck className="h-4 w-4 text-primary" />
+                                MANAGER PIN REQUIRED
+                            </label>
+                            <Input
+                                type="password"
+                                placeholder="Enter Manager PIN"
+                                value={pin}
+                                maxLength={6}
+                                onChange={(e) => setPin(e.target.value)}
+                                className="text-center tracking-[0.5em] font-black text-xl h-12"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <DialogFooter>

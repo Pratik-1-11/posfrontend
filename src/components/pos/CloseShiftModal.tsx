@@ -58,10 +58,22 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({ isOpen, onClos
                             Actual Cash in Drawer (Rs.)
                         </label>
                         <Input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             placeholder="0.00"
                             value={actualCash}
-                            onChange={(e) => setActualCash(e.target.value)}
+                            onChange={(e) => {
+                                // Allow only numbers and decimal point
+                                const val = e.target.value;
+                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                    setActualCash(val);
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && actualCash) {
+                                    handleClose();
+                                }
+                            }}
                             autoFocus
                         />
                     </div>
