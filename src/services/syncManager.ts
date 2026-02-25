@@ -1,6 +1,8 @@
-import { apiClient } from '@/services/api/apiClient';
-import { db, type OfflineSale } from '@/db/db';
+import { db, type OfflineSale, type Product as DbProduct, type Category as DbCategory, type Customer as DbCustomer } from '@/db/db';
 import { toast } from '@/hooks/use-toast';
+import { productApi } from '@/services/api/productApi';
+import { customerApi } from '@/services/api/customerApi';
+import { orderApi } from '@/services/api/orderApi';
 
 const SYNC_RETRY_DELAY = 5000; // 5 seconds
 const MAX_BATCH_SIZE = 10;
@@ -14,21 +16,29 @@ export const syncManager = {
         try {
             console.log('[Sync] Initializing pull...');
 
+            // Get tenant ID from stored user for consistency
+            const savedUser = localStorage.getItem('pos_user');
+            const tenantId = savedUser ? JSON.parse(savedUser).tenant?.id || '' : '';
+
             // 1. Get last sync timestamps
             await db.syncState.get('last_product_sync');
             await db.syncState.get('last_customer_sync');
 
-            // 2. Fetch Products & Categories (Simplified for now - we fetch all if stale)
-            // In a more advanced version, we'd send the timestamp to the server
-            const productRes = await apiClient.get<any>('/products');
-            const products = productRes.data?.products || [];
+            // 2. Fetch Products & Categories
+            const products = await productApi.getAll();
 
             if (products.length > 0) {
                 // Atomic update: use transaction to ensure consistency
                 await db.transaction('rw', [db.products, db.syncState], async () => {
                     await db.products.clear();
-                    await db.products.bulkAdd(products.map((p: any) => ({
-                        ...p,
+                    await db.products.bulkAdd(products.map((p): DbProduct => ({
+                        id: p.id,
+                        name: p.name,
+                        barcode: p.barcode,
+                        price: p.price,
+                        selling_price: p.price,
+                        stock_quantity: p.stock,
+                        tenant_id: tenantId,
                         last_fetched_at: Date.now()
                     })));
                     await db.syncState.put({ key: 'last_product_sync', value: Date.now() });
@@ -37,20 +47,29 @@ export const syncManager = {
             }
 
             // 3. Fetch Categories
-            const categoryRes = await apiClient.get<any>('/categories');
-            const categories = categoryRes.data?.categories || [];
+            const categories = await productApi.getCategories();
             if (categories.length > 0) {
                 await db.categories.clear();
-                await db.categories.bulkAdd(categories);
+                await db.categories.bulkAdd(categories.map((name, index): DbCategory => ({
+                    id: `cat-${index}`,
+                    name,
+                    tenant_id: tenantId
+                })));
             }
 
             // 4. Fetch Customers
-            const customerRes = await apiClient.get<any>('/customers');
-            const customers = customerRes.data?.customers || [];
+            const customers = await customerApi.getAll();
             if (customers.length > 0) {
                 await db.transaction('rw', [db.customers, db.syncState], async () => {
                     await db.customers.clear();
-                    await db.customers.bulkAdd(customers);
+                    await db.customers.bulkAdd(customers.map((c): DbCustomer => ({
+                        id: c.id,
+                        name: c.name,
+                        phone: c.phone,
+                        email: c.email,
+                        address: c.address,
+                        tenant_id: tenantId,
+                    })));
                     await db.syncState.put({ key: 'last_customer_sync', value: Date.now() });
 
                     // Legacy support: sync with localStorage for components not yet using Dexie
@@ -90,7 +109,7 @@ export const syncManager = {
                 // Mark as syncing to avoid duplicate attempts from overlapping workers
                 await db.offlineSales.update(sale.id!, { status: 'syncing' });
 
-                await apiClient.post('/orders', sale.payload);
+                await orderApi.create(sale.payload);
 
                 // Success! Mark as completed
                 await db.offlineSales.update(sale.id!, {
