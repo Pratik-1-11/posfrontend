@@ -150,5 +150,10 @@ export const reportApi = {
     }> => {
         const res = await apiClient.request<{ status: string; data: any }>('/api/reports/summary');
         return res.data;
+    },
+
+    getForecasting: async (): Promise<{ salesForecast: any[], insights: any[] }> => {
+        const res = await apiClient.request<{ status: string; data: { salesForecast: any[], insights: any[] } }>('/api/reports/forecast');
+        return res.data;
     }
 };

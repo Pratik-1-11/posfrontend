@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Users,
   Building2,
+  Link,
   Terminal,
   Clock,
   RefreshCw,
@@ -99,6 +100,7 @@ const navSections: NavSection[] = [
     title: 'Settings',
     items: [
       { to: '/stores', icon: Building2, label: 'Branch Profiles', roles: ['VENDOR_ADMIN'] },
+      { to: '/integrations', icon: Link, label: 'Integrations', roles: ['VENDOR_ADMIN'] },
       { to: '/settings', icon: Settings, label: 'General Settings', roles: ['VENDOR_ADMIN'] },
     ]
   }

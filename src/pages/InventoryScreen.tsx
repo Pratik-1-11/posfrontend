@@ -23,6 +23,9 @@ type ProductStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { BarcodeLabelDesigner } from '@/components/inventory/BarcodeLabelDesigner';
+import { useQuery } from '@tanstack/react-query';
+import { reportApi } from '@/services/api/reportApi';
+import { Sparkles, AlertCircle } from 'lucide-react';
 
 const InventorySkeleton = () => (
   <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen">
@@ -56,6 +59,12 @@ export const InventoryScreen: React.FC = () => {
   const { user } = useAuth();
   const { products, addProduct, updateProduct, deleteProduct, refreshProducts, loading } = useProductContext();
   const { toast } = useToast();
+
+  const { data: forecastData } = useQuery({
+    queryKey: ['report-forecast'],
+    queryFn: reportApi.getForecasting,
+    staleTime: 1000 * 60 * 15 // 15 mins
+  });
 
   const canManage = user && ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(user.role);
 
@@ -244,6 +253,30 @@ export const InventoryScreen: React.FC = () => {
           )}
         </div>
       </div>
+
+      {forecastData?.insights && forecastData.insights.filter((i: any) => i.days_remaining < 7).length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
+          {forecastData.insights.filter((i: any) => i.days_remaining < 7).slice(0, 3).map((insight: any) => (
+            <div key={insight.product_id} className="p-4 rounded-3xl bg-white border border-rose-100 shadow-sm flex items-start gap-4 hover:shadow-md transition-all group">
+              <div className="h-10 w-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <AlertCircle size={20} />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">{insight.product_name}</h4>
+                  <Badge variant="destructive" className="text-[9px] font-black uppercase">Critical</Badge>
+                </div>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">
+                  Run-out predicted in <span className="text-rose-600 font-bold">{insight.days_remaining} days</span>
+                </p>
+                <div className="flex items-center gap-1 mt-2 text-[10px] font-black text-rose-700 uppercase">
+                  <Sparkles size={12} className="animate-pulse" /> Reorder Suggestion
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-md rounded-3xl overflow-hidden">
         <CardContent className="p-6">

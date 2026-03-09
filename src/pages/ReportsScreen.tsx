@@ -7,7 +7,9 @@ import {
   TrendingUp,
   Calendar,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { exportToCSV, exportToPDF } from '@/utils/export';
 import { SalesTrendChart } from '@/components/reports/SalesTrendChart';
@@ -91,6 +93,11 @@ export const ReportsScreen: React.FC = () => {
   const { data: profitData } = useQuery({
     queryKey: ['report-profit', startDate, endDate],
     queryFn: () => reportApi.getProfitAnalysis({ startDate, endDate })
+  });
+
+  const { data: forecastData } = useQuery({
+    queryKey: ['report-forecast'],
+    queryFn: reportApi.getForecasting
   });
 
   const handleDateRangeChange = (value: string) => {
@@ -306,6 +313,9 @@ export const ReportsScreen: React.FC = () => {
           <TabsTrigger value="products" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Product Performance</TabsTrigger>
           <TabsTrigger value="profit" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Profit Analysis</TabsTrigger>
           <TabsTrigger value="expenses" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">Expense Analysis</TabsTrigger>
+          <TabsTrigger value="predictions" className="px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm flex gap-2">
+            <Sparkles className="h-4 w-4 text-purple-600" /> AI Insights
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales">
@@ -455,6 +465,101 @@ export const ReportsScreen: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="predictions" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-none shadow-md overflow-hidden bg-gradient-to-br from-white to-purple-50/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-purple-600" /> Revenue Forecast (Next 6 Months)
+                </CardTitle>
+                <p className="text-xs text-slate-500 font-medium italic">Powered by linear regression over historical sales</p>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={forecastData?.salesForecast?.map((f: any) => ({
+                      month: format(parseISO(f.forecast_month), 'MMM yyyy'),
+                      amount: Number(f.predicted_revenue),
+                      confidence: Number(f.confidence_score)
+                    }))}>
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700 }} />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                        formatter={(val: number) => [`Rs.${val.toLocaleString()}`, 'Projected Revenue']}
+                      />
+                      <Bar dataKey="amount" fill="url(#purpleGradient)" radius={[8, 8, 0, 0]}>
+                        <Cell fill="#8b5cf6" />
+                        <Cell fill="#a855f7" />
+                        <Cell fill="#c084fc" />
+                        <Cell fill="#d8b4fe" />
+                        <Cell fill="#e9d5ff" />
+                        <Cell fill="#f3e8ff" />
+                      </Bar>
+                      <defs>
+                        <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.4} />
+                        </linearGradient>
+                      </defs>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 p-4 bg-purple-50 border border-purple-100 rounded-2xl">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-bold text-purple-700 uppercase tracking-widest">Model Confidence</span>
+                    <span className="text-sm font-black text-purple-900">{forecastData?.salesForecast?.[0]?.confidence_score?.toFixed(1) || 0}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-purple-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-600 rounded-full" style={{ width: `${forecastData?.salesForecast?.[0]?.confidence_score || 0}%` }} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-md bg-white">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-amber-500" /> Stock Depletion Intelligence
+                </CardTitle>
+                <p className="text-xs text-slate-500 font-medium">Predicting out-of-stock events based on current sales velocity</p>
+              </CardHeader>
+              <CardContent className="px-0">
+                <div className="max-h-[400px] overflow-y-auto px-6">
+                  <div className="space-y-4">
+                    {forecastData?.insights?.map((item: any, i: number) => (
+                      <div key={i} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:border-purple-200 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-slate-800">{item.product_name}</h4>
+                          <Badge variant={item.days_remaining < 7 ? 'destructive' : 'outline'} className="text-[10px]">
+                            {item.days_remaining} Days Left
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-slate-400 font-bold uppercase text-[9px]">Daily Velocity</p>
+                            <p className="font-black text-slate-700">{Number(item.avg_daily_consumption).toFixed(2)} units/day</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-slate-400 font-bold uppercase text-[9px]">Projected Revenue</p>
+                            <p className="font-black text-emerald-600">Rs.{Number(item.projected_next_month_revenue).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 text-[11px] text-purple-700 font-bold bg-purple-50 px-2 py-1 rounded-lg border border-purple-100 flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" /> {item.recommendation}
+                        </div>
+                      </div>
+                    ))}
+                    {!forecastData?.insights?.length && (
+                      <div className="text-center p-12 text-slate-400 font-bold">No predictions available. Start selling more to train the model!</div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

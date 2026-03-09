@@ -24,6 +24,7 @@ export interface Customer {
     phone: string;
     email?: string;
     address?: string;
+    pan_number?: string;
     loyalty_points?: number;
     tenant_id: string;
 }

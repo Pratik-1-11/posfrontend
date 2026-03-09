@@ -71,6 +71,11 @@ export const CustomerList: React.FC<CustomerListProps> = ({
                                             <span>{customer.address}</span>
                                         </div>
                                     )}
+                                    {customer.panNumber && (
+                                        <div className="flex items-center gap-1 bg-slate-100 px-1.5 rounded-md text-[10px] font-bold">
+                                            <span>PAN: {customer.panNumber}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

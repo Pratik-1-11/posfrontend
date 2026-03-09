@@ -43,6 +43,9 @@ export function calculateTotal(
 
 /**
  * Calculate all order totals at once.
+ * Nepal-compliant: discount applied before VAT calculation.
+ * B2B (exclusive): Subtotal → Discount → Taxable Amount → +VAT → Grand Total
+ * B2C (inclusive): Prices already include VAT; VAT is extracted from the discounted total.
  */
 export function calculateOrderTotals(
     items: CartItem[],
@@ -51,7 +54,9 @@ export function calculateOrderTotals(
     vatMode: 'exclusive' | 'inclusive' = 'exclusive'
 ) {
     const rawSubtotal = calculateSubtotal(items);
-    const subtotalAfterDiscount = rawSubtotal - discount;
+    // Clamp discount: never exceed subtotal, never go negative
+    const safeDiscount = Math.max(0, Math.min(discount, rawSubtotal));
+    const subtotalAfterDiscount = Math.max(0, rawSubtotal - safeDiscount);
     const tax = calculateTax(subtotalAfterDiscount, taxRate, vatMode);
     const total =
         vatMode === 'exclusive'
@@ -59,9 +64,9 @@ export function calculateOrderTotals(
             : subtotalAfterDiscount; // inclusive already includes tax
     return {
         subtotal: rawSubtotal,
-        discount,
-        tax,
-        total: Math.round(total * 100) / 100,
+        discount: safeDiscount,
+        tax: isNaN(tax) ? 0 : tax,
+        total: isNaN(total) ? 0 : Math.round(total * 100) / 100,
     };
 }
 

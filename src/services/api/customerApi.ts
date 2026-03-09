@@ -42,6 +42,7 @@ const mapCustomer = (c: any): Customer => ({
     currentBalance: Number(c.total_credit || 0),
     totalPurchases: Number(c.total_purchases || 0),
     creditLimit: Number(c.credit_limit || 0),
+    panNumber: c.pan_number,
     isActive: c.is_active,
     createdDate: new Date(c.created_at || Date.now())
 });
@@ -103,6 +104,7 @@ export const customerApi = {
                     currentBalance: 0,
                     totalPurchases: 0,
                     creditLimit: 0,
+                    panNumber: c.pan_number || '',
                     isActive: true,
                     createdDate: new Date()
                 }));

@@ -143,10 +143,10 @@ export const EmployeesScreen = () => {
             }
             setIsModalOpen(false);
             loadEmployees();
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Failed to save employee",
+                description: error?.message || "Failed to save employee",
                 variant: "destructive",
             });
         }
@@ -158,10 +158,10 @@ export const EmployeesScreen = () => {
             await employeeApi.deleteEmployee(id);
             toast({ title: "Success", description: "Employee deleted successfully" });
             loadEmployees();
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Failed to delete employee",
+                description: error?.message || "Failed to delete employee",
                 variant: "destructive",
             });
         }

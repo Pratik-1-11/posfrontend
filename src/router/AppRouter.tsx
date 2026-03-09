@@ -17,6 +17,7 @@ import { CreditRecoveryScreen } from '@/pages/CreditRecoveryScreen';
 import { VatReportScreen } from '@/pages/VatReportScreen';
 import { PurchaseBookScreen } from '@/pages/PurchaseBookScreen';
 import { ReturnsScreen } from '@/pages/ReturnsScreen';
+import { IntegrationsScreen } from '@/pages/IntegrationsScreen';
 import TenantListPage from '@/pages/admin/tenants/TenantListPage';
 import TenantLayout from '@/pages/admin/tenants/TenantLayout';
 import TenantOverviewPage from '@/pages/admin/tenants/overview/TenantOverviewPage';
@@ -222,6 +223,14 @@ const router = createBrowserRouter([
                 element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN']} />,
                 children: [
                     { index: true, element: <StoreManagement /> }
+                ]
+            },
+            // Integrations - Admin only
+            {
+                path: "/integrations",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN']} />,
+                children: [
+                    { index: true, element: <IntegrationsScreen /> }
                 ]
             },
             // Sales History - Managers and Cashiers

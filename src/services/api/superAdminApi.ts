@@ -395,6 +395,24 @@ class SuperAdminApi {
         const response = await apiClient.get<{ data: Plan }>(`/api/admin/plans/${planId}`);
         return response.data;
     }
+
+    /**
+     * Integrations & Sync Monitoring
+     */
+    async getTenantIntegrations(tenantId: string): Promise<any[]> {
+        const response = await apiClient.get<{ data: any[] }>(`/api/admin/tenants/${tenantId}/integrations`);
+        return response.data;
+    }
+
+    async getTenantWebhooks(tenantId: string): Promise<any[]> {
+        const response = await apiClient.get<{ data: any[] }>(`/api/admin/tenants/${tenantId}/webhooks`);
+        return response.data;
+    }
+
+    async getTenantSyncJobs(tenantId: string): Promise<any[]> {
+        const response = await apiClient.get<{ data: any[] }>(`/api/admin/tenants/${tenantId}/sync`);
+        return response.data;
+    }
 }
 
 export interface ActivityLog {
