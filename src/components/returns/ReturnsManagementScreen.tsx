@@ -5,19 +5,12 @@ import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/Select';
 import { Badge } from '../ui/Badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
 import { ScrollArea } from '../ui/ScrollArea';
-import { Search, Plus, Eye, CheckCircle, XCircle, Clock, DollarSign, Package } from 'lucide-react';
-import { toast } from 'sonner';
+import { Search, Plus, CheckCircle, XCircle, Clock, DollarSign, Package } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-interface ReturnItem {
-  productId: string;
-  quantity: number;
-  unitPrice: number;
-  reason: string;
-  condition: string;
-  exchangeProductId?: string;
-}
+
 
 interface Return {
   id: string;
@@ -67,13 +60,13 @@ interface ReturnDetail extends Return {
 }
 
 const ReturnsManagementScreen: React.FC = () => {
+  const { toast } = useToast();
   const [returns, setReturns] = useState<Return[]>([]);
   const [selectedReturn, setSelectedReturn] = useState<ReturnDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [returnTypeFilter, setReturnTypeFilter] = useState<string>('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -102,11 +95,11 @@ const ReturnsManagementScreen: React.FC = () => {
         setReturns(data.data.returns);
         setPagination(data.data.pagination);
       } else {
-        toast.error('Failed to fetch returns');
+        toast({ title: 'Error', description: 'Failed to fetch returns', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Fetch returns error:', error);
-      toast.error('Failed to fetch returns');
+      toast({ title: 'Error', description: 'Failed to fetch returns', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -122,11 +115,11 @@ const ReturnsManagementScreen: React.FC = () => {
         setSelectedReturn(data.data);
         setShowDetailModal(true);
       } else {
-        toast.error('Failed to fetch return details');
+        toast({ title: 'Error', description: 'Failed to fetch return details', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Get return details error:', error);
-      toast.error('Failed to fetch return details');
+      toast({ title: 'Error', description: 'Failed to fetch return details', variant: 'destructive' });
     }
   };
 
@@ -148,17 +141,17 @@ const ReturnsManagementScreen: React.FC = () => {
       const data = await response.json();
 
       if (data.status === 'success') {
-        toast.success(`Return ${status} successfully`);
+        toast({ title: 'Success', description: `Return ${status} successfully` });
         fetchReturns();
         if (showDetailModal) {
           getReturnDetails(returnId);
         }
       } else {
-        toast.error(data.message || 'Failed to update return status');
+        toast({ title: 'Error', description: data.message || 'Failed to update return status', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Update return status error:', error);
-      toast.error('Failed to update return status');
+      toast({ title: 'Error', description: 'Failed to update return status', variant: 'destructive' });
     }
   };
 
@@ -213,7 +206,7 @@ const ReturnsManagementScreen: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Returns Management</h1>
-        <Button onClick={() => setShowCreateModal(true)}>
+        <Button onClick={() => toast({ title: 'Notice', description: 'Create return feature coming soon' })}>
           <Plus className="h-4 w-4 mr-2" />
           New Return
         </Button>
@@ -422,7 +415,7 @@ const ReturnsManagementScreen: React.FC = () => {
                 <div>
                   <Label>Items ({selectedReturn.items.length})</Label>
                   <div className="space-y-2">
-                    {selectedReturn.items.map((item, index) => (
+                    {selectedReturn.items.map((item) => (
                       <div key={item.id} className="border rounded p-3">
                         <div className="flex justify-between items-start">
                           <div>
