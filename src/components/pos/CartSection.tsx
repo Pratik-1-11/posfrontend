@@ -10,6 +10,10 @@ interface CartSectionProps {
     subtotal: number;
     tax: number;
     total: number;
+    discount?: number;
+    vatMode?: 'exclusive' | 'inclusive';
+    onVatModeChange?: (mode: 'exclusive' | 'inclusive') => void;
+    onDiscountChange?: (discount: number) => void;
     todaySales: { total: number; count: number };
     heldBillsCount: number;
     canReprint: boolean;
@@ -30,6 +34,10 @@ export const CartSection: React.FC<CartSectionProps> = ({
     subtotal,
     tax,
     total,
+    discount = 0,
+    vatMode = 'exclusive',
+    onVatModeChange,
+    onDiscountChange,
     todaySales,
     heldBillsCount,
     canReprint,
@@ -137,6 +145,46 @@ export const CartSection: React.FC<CartSectionProps> = ({
                         </Button>
                     )}
                 </div>
+
+                {items.length > 0 && (
+                    <div className="px-4 py-2 flex flex-col gap-2 border-b border-slate-100 bg-slate-50/50">
+                        {onVatModeChange && (
+                            <div className="flex gap-2 bg-slate-200/50 p-1 rounded-lg">
+                                <button
+                                    onClick={() => onVatModeChange('exclusive')}
+                                    className={`flex-1 text-xs font-bold px-2 py-1.5 rounded-md transition-all ${vatMode === 'exclusive' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    VAT Exclusive
+                                </button>
+                                <button
+                                    onClick={() => onVatModeChange('inclusive')}
+                                    className={`flex-1 text-xs font-bold px-2 py-1.5 rounded-md transition-all ${vatMode === 'inclusive' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    VAT Inclusive
+                                </button>
+                            </div>
+                        )}
+                        {onDiscountChange && (
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Discount Amt (Rs)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max={subtotal}
+                                    value={discount || ''}
+                                    onChange={(e) => {
+                                        let val = parseFloat(e.target.value) || 0;
+                                        if (val < 0) val = 0;
+                                        if (val > subtotal) val = subtotal; // validate <= subtotal
+                                        onDiscountChange(val);
+                                    }}
+                                    className="w-full text-sm font-bold p-1 border rounded"
+                                    placeholder="0"
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Scrollable Cart Items */}
@@ -223,9 +271,15 @@ export const CartSection: React.FC<CartSectionProps> = ({
                         <span>Subtotal ({itemCount} items)</span>
                         <span className="text-slate-600 font-black">{formatCurrency(subtotal)}</span>
                     </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span>Discount</span>
+                            <span className="text-red-500 font-black">-{formatCurrency(discount)}</span>
+                        </div>
+                    )}
                     {tax > 0 && (
                         <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            <span>Tax</span>
+                            <span>Tax ({vatMode === 'exclusive' ? '+13%' : 'Inc 13%'})</span>
                             <span className="text-slate-600 font-black">{formatCurrency(tax)}</span>
                         </div>
                     )}

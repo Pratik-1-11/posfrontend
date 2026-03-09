@@ -104,7 +104,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name || !formData.stock || !formData.price || !formData.category) {
+        if (!formData.name || formData.stock === undefined || formData.stock === null || !formData.price || !formData.category) {
             // Basic html 5 required attributes handle this, but double check
             return;
         }

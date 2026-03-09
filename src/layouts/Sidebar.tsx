@@ -23,7 +23,8 @@ import {
   History,
   Activity,
   Receipt,
-  LifeBuoy
+  LifeBuoy,
+  Calculator
 } from 'lucide-react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -91,6 +92,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/reports', icon: BarChart2, label: 'Sales Reports', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
       { to: '/reports/vat', icon: FileSpreadsheet, label: 'VAT Book', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
+      { to: '/accounting', icon: Calculator, label: 'Accounting Ledger', roles: ['VENDOR_ADMIN', 'VENDOR_MANAGER'] },
     ]
   },
   {

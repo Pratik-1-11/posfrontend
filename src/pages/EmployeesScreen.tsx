@@ -223,7 +223,7 @@ export const EmployeesScreen = () => {
                                     <TableCell className="font-medium">{employee.name}</TableCell>
                                     <TableCell>{employee.username}</TableCell>
                                     <TableCell>{employee.email}</TableCell>
-                                    <TableCell className="capitalize">{employee.role.toLowerCase().replace('_', ' ')}</TableCell>
+                                    <TableCell className="capitalize">{(employee.role || 'cashier').toLowerCase().replace(/_/g, ' ')}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             {/* PIN Button - Allow for Admins and Managers */}

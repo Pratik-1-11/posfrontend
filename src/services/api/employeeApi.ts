@@ -17,10 +17,11 @@ type BackendSingleUserResponse = {
 
 const mapUserFromBackend = (u: any): User => ({
     id: u.id,
-    name: u.full_name || u.username || 'Unnamed',
-    username: u.username,
+    name: u.full_name || u.username || u.email || 'Unnamed',
+    username: u.username || '',
     email: u.email,
-    role: u.role,
+    role: (u.role || 'CASHIER') as import('../../types/user').Role,
+    branchId: u.branch_id,
 });
 
 export const employeeApi = {

@@ -30,6 +30,8 @@ interface InvoiceProps {
   amountReceived?: number;
   change?: number;
   previousDue?: number;
+  discountAmount?: number;
+  vatMode?: 'exclusive' | 'inclusive';
 }
 
 export const Invoice: React.FC<InvoiceProps> = ({
@@ -47,6 +49,8 @@ export const Invoice: React.FC<InvoiceProps> = ({
   amountReceived,
   change,
   previousDue,
+  discountAmount = 0,
+  vatMode = 'exclusive',
 }) => {
   const { settings } = useSettings();
 
@@ -217,6 +221,8 @@ export const Invoice: React.FC<InvoiceProps> = ({
                 customerPan={customerPan}
                 amountReceived={amountReceived}
                 change={change}
+                discountAmount={discountAmount}
+                vatMode={vatMode}
               />
             }
             fileName={`invoice-${invoiceNumber}.pdf`}
@@ -325,13 +331,25 @@ export const Invoice: React.FC<InvoiceProps> = ({
 
         {/* Summary */}
         <div className="invoice-summary ml-auto print:w-full" style={{ maxWidth: '300px' }}>
-          <div className="flex justify-between py-2 border-b print:py-1 print:border-dashed print:border-black">
+          <div className="flex justify-between py-1 print:py-0">
             <span>Subtotal:</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
+          {discountAmount > 0 && (
+            <div className="flex justify-between py-1 print:py-0 text-red-600 print:text-black">
+              <span>Discount:</span>
+              <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between py-1 print:py-0 border-t border-dashed border-slate-200 print:border-black mt-1">
+            <span>Taxable Amount:</span>
+            <span className="font-medium">
+              {formatCurrency(vatMode === 'exclusive' ? subtotal - discountAmount : grandTotal - tax)}
+            </span>
+          </div>
           {tax > 0 && (
-            <div className="flex justify-between py-2 border-b print:py-1 print:border-dashed print:border-black">
-              <span>Tax:</span>
+            <div className="flex justify-between py-1 print:py-0 border-b print:border-black">
+              <span>{vatMode === 'exclusive' ? 'Add: 13% VAT' : 'Inc: 13% VAT'}</span>
               <span className="font-medium">{formatCurrency(tax)}</span>
             </div>
           )}

@@ -75,8 +75,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem('pos_products_cache', JSON.stringify(products));
           }
 
-          // Sync to Dexie (Robust offline DB) - Use bulkPut to update instead of clear+bulkPut
-          await db.products.clear();
+          // Sync to Dexie (Robust offline DB) - bulkPut handles upserts, no need to clear first
           await db.products.bulkPut(products);
         } catch (err) {
           console.error('Background sync failed:', err);

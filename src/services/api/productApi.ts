@@ -17,13 +17,23 @@ type ProductResponse = {
 };
 
 const mapProduct = (p: any): Product => {
-  // If branch_inventory is present, use that quantity, otherwise use global stock
-  let stock = Number(p.stock_quantity || 0);
-  if (p.branch_inventory && Array.isArray(p.branch_inventory) && p.branch_inventory.length > 0) {
-    stock = Number(p.branch_inventory[0].quantity || 0);
-  } else if (p.branch_inventory && typeof p.branch_inventory === 'object') {
-    // Some Supabase responses return a single object instead of array if joined uniquely
-    stock = Number(p.branch_inventory.quantity || 0);
+  // Start with the global stock_quantity stored on the products table
+  let stock = Number(p.stock_quantity ?? 0);
+
+  // If the list query joined branch_inventory, prefer that (branch-specific quantity)
+  if (Array.isArray(p.branch_inventory) && p.branch_inventory.length > 0) {
+    // Use the first matching branch-inventory row
+    const qty = p.branch_inventory[0]?.quantity;
+    // Only override if we got a real number (not null/undefined)
+    if (qty !== null && qty !== undefined) {
+      stock = Number(qty);
+    }
+  } else if (p.branch_inventory && !Array.isArray(p.branch_inventory)) {
+    // Supabase sometimes returns a single object instead of array for unique joins
+    const qty = p.branch_inventory.quantity;
+    if (qty !== null && qty !== undefined) {
+      stock = Number(qty);
+    }
   }
 
   return {
@@ -75,6 +85,9 @@ export const productApi = {
     formData.append("stock", String(product.stock));
     formData.append("minQuantity", String(product.minStockLevel || 5));
     formData.append("category", product.category);
+    // Send current branchId so backend can seed branch_inventory
+    const branchId = localStorage.getItem('pos_current_branch_id');
+    if (branchId) formData.append("branchId", branchId);
     if (product.image) {
       if (product.image instanceof File) {
         formData.append("image", product.image);

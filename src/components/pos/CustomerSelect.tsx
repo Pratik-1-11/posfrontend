@@ -27,7 +27,7 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
     const [showAddForm, setShowAddForm] = useState(false);
 
     // New Customer Form State
-    const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', address: '', creditLimit: 0 });
+    const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', address: '', creditLimit: 0, panNumber: '' });
     const [isCreating, setIsCreating] = useState(false);
 
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -78,7 +78,7 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
     const handleQuickAdd = () => {
         // Pre-fill phone if query looks like a phone number
         const phoneValue = isPhoneNumber(query) ? query : '';
-        setNewCustomer({ name: '', phone: phoneValue, address: '', creditLimit: 0 });
+        setNewCustomer({ name: '', phone: phoneValue, address: '', creditLimit: 0, panNumber: '' });
         setShowAddForm(true);
     };
 
@@ -98,7 +98,7 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
             onSelectCustomer(created);
             setShowAddForm(false);
             setQuery('');
-            setNewCustomer({ name: '', phone: '', address: '', creditLimit: 0 });
+            setNewCustomer({ name: '', phone: '', address: '', creditLimit: 0, panNumber: '' });
             setIsOpen(false);
             toast({
                 title: "✓ Customer Added",
@@ -130,6 +130,11 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
                         <div className="flex items-center gap-1 text-xs text-slate-500">
                             <Phone size={10} />
                             <span>{selectedCustomer.phone || 'No phone'}</span>
+                            {selectedCustomer.panNumber && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-slate-100 rounded text-[9px] font-bold border border-slate-200">
+                                    PAN: {selectedCustomer.panNumber}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -192,6 +197,7 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
                                                 <p className="text-xs text-slate-400 flex items-center gap-1">
                                                     <Phone size={10} />
                                                     {customer.phone || 'No phone'}
+                                                    {customer.panNumber && <span className="ml-1 text-[9px]">| PAN: {customer.panNumber}</span>}
                                                 </p>
                                             </div>
                                         </div>
@@ -279,6 +285,18 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
                                         onChange={e => setNewCustomer({ ...newCustomer, name: e.target.value })}
                                     />
                                 </div>
+                                {/* PAN Number - Optional */}
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">
+                                        PAN Number <span className="text-slate-400">(Optional)</span>
+                                    </label>
+                                    <input
+                                        className="w-full p-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-400/30 focus:outline-none"
+                                        placeholder="9-digit PAN"
+                                        value={newCustomer.panNumber}
+                                        onChange={e => setNewCustomer({ ...newCustomer, panNumber: e.target.value })}
+                                    />
+                                </div>
                                 {/* Credit Limit */}
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">
@@ -310,7 +328,7 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
                                         type="button"
                                         onClick={() => {
                                             setShowAddForm(false);
-                                            setNewCustomer({ name: '', phone: '', address: '', creditLimit: 0 });
+                                            setNewCustomer({ name: '', phone: '', address: '', creditLimit: 0, panNumber: '' });
                                         }}
                                         className="flex-1 py-2.5 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                                     >

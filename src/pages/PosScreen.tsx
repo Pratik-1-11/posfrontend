@@ -65,6 +65,8 @@ export const PosScreen: React.FC = () => {
   const [lastInvoiceData, setLastInvoiceData] = useState<any>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const [vatMode, setVatMode] = useState<'exclusive' | 'inclusive'>('inclusive');
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
 
   // Modal states
   const paymentModal = useModal();
@@ -115,8 +117,8 @@ export const PosScreen: React.FC = () => {
   }, [products]);
 
   const { subtotal, tax, total: grandTotal } = useMemo(() =>
-    calculateOrderTotals(cartItems),
-    [cartItems]
+    calculateOrderTotals(cartItems, 0.13, discountAmount, vatMode),
+    [cartItems, discountAmount, vatMode]
   );
 
   const stats = useMemo(() => {
@@ -215,7 +217,7 @@ export const PosScreen: React.FC = () => {
     try {
       const orderRes = await orderApi.create({
         items: cartItems.map((i) => ({ productId: i.id, quantity: i.quantity })),
-        discountAmount: 0,
+        discountAmount: discountAmount,
         taxAmount: tax,
         paymentMethod: method,
         paymentDetails,
@@ -240,6 +242,8 @@ export const PosScreen: React.FC = () => {
         customerName: selectedCustomer?.name,
         customerPan: selectedCustomer?.panNumber,
         customer: selectedCustomer,
+        discountAmount,
+        vatMode,
       };
 
       setInvoiceData(newInvoiceData);
@@ -456,6 +460,10 @@ export const PosScreen: React.FC = () => {
           <CartSection
             items={cartItems}
             subtotal={subtotal}
+            discount={discountAmount}
+            vatMode={vatMode}
+            onDiscountChange={setDiscountAmount}
+            onVatModeChange={setVatMode}
             tax={tax}
             total={grandTotal}
             todaySales={stats}

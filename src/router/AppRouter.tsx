@@ -33,6 +33,7 @@ import { SubscriptionsDashboard } from '@/pages/admin/SubscriptionsDashboard';
 import { AuditLogsPage } from '@/pages/admin/AuditLogsPage';
 import { PlatformConsoleOverview } from '@/pages/admin/PlatformConsoleOverview';
 import { SupportCenterPage } from '@/pages/admin/SupportCenterPage';
+import { AccountingScreen } from '@/pages/AccountingScreen';
 
 // Layout wrapper for protected routes
 const ProtectedLayout = () => {
@@ -237,6 +238,13 @@ const router = createBrowserRouter([
                 element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN']} />,
                 children: [
                     { index: true, element: <EmployeesScreen /> }
+                ]
+            },
+            {
+                path: "/accounting",
+                element: <StrictRoleGuard allowedRoles={['VENDOR_ADMIN', 'VENDOR_MANAGER']} />,
+                children: [
+                    { index: true, element: <AccountingScreen /> }
                 ]
             },
             // Fallback - redirect to access denied instead of POS

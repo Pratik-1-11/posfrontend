@@ -147,6 +147,8 @@ interface PDFInvoiceProps {
     customerPan?: string;
     amountReceived?: number;
     change?: number;
+    discountAmount?: number;
+    vatMode?: 'exclusive' | 'inclusive';
 }
 
 export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
@@ -162,6 +164,8 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
     customerPan,
     amountReceived,
     change,
+    discountAmount = 0,
+    vatMode = 'exclusive',
 }) => (
     <Document>
         <Page size="A4" style={styles.page}>
@@ -220,9 +224,21 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
                     <Text style={styles.summaryLabel}>Subtotal:</Text>
                     <Text style={styles.summaryValue}>{String(Number(subtotal).toFixed(2))}</Text>
                 </View>
+                {discountAmount > 0 && (
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Discount:</Text>
+                        <Text style={styles.summaryValue}>-{String(Number(discountAmount).toFixed(2))}</Text>
+                    </View>
+                )}
+                <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 2 }]}>
+                    <Text style={styles.summaryLabel}>Taxable Amount:</Text>
+                    <Text style={styles.summaryValue}>
+                        {String(Number(vatMode === 'exclusive' ? subtotal - discountAmount : grandTotal - tax).toFixed(2))}
+                    </Text>
+                </View>
                 {tax > 0 && (
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Tax:</Text>
+                        <Text style={styles.summaryLabel}>{vatMode === 'exclusive' ? 'Add: 13% VAT' : 'Inc: 13% VAT'}</Text>
                         <Text style={styles.summaryValue}>{String(Number(tax).toFixed(2))}</Text>
                     </View>
                 )}

@@ -17,4 +17,5 @@ export interface Sale {
     paymentMethod: "cash" | "card" | "qr"
     date: string
     cashierId: string
+    invoiceNumber?: string
 }
