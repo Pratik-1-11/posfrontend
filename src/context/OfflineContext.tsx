@@ -5,15 +5,24 @@ import { toast } from '@/hooks/use-toast';
 interface OfflineContextType {
     isOnline: boolean;
     isSyncing: boolean;
+    pendingCount: number;
     syncData: () => Promise<void>;
 }
 
 const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
 
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/db/db';
+
 export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [isSyncing, setIsSyncing] = useState(false);
     const syncInProgress = useRef(false);
+
+    const pendingCount = useLiveQuery(
+        () => db.offlineSales.count(),
+        []
+    ) ?? 0;
 
     const syncData = async () => {
         if (!navigator.onLine || syncInProgress.current) return;
@@ -78,7 +87,7 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, []);
 
     return (
-        <OfflineContext.Provider value={{ isOnline, isSyncing, syncData }}>
+        <OfflineContext.Provider value={{ isOnline, isSyncing, pendingCount, syncData }}>
             {children}
         </OfflineContext.Provider>
     );

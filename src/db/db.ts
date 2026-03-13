@@ -29,6 +29,17 @@ export interface Customer {
     tenant_id: string;
 }
 
+export interface ProductBatch {
+    id: string;
+    product_id: string;
+    batch_number: string;
+    cost_price: number;
+    selling_price?: number;
+    quantity_remaining: number;
+    expiry_date?: string;
+    tenant_id: string;
+}
+
 export interface OfflineSale {
     id?: number;
     idempotencyKey: string;
@@ -47,6 +58,7 @@ export interface SyncState {
 
 export class PosDatabase extends Dexie {
     products!: Table<Product>;
+    productBatches!: Table<ProductBatch>;
     categories!: Table<Category>;
     customers!: Table<Customer>;
     offlineSales!: Table<OfflineSale>;
@@ -54,8 +66,9 @@ export class PosDatabase extends Dexie {
 
     constructor() {
         super('PosDatabase');
-        this.version(2).stores({
+        this.version(3).stores({
             products: 'id, name, barcode, category_id, tenant_id',
+            productBatches: 'id, product_id, tenant_id, expiry_date',
             categories: 'id, name, tenant_id',
             customers: 'id, name, phone, tenant_id',
             offlineSales: '++id, idempotencyKey, status, created_at, next_retry_time',

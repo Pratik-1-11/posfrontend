@@ -13,6 +13,7 @@ type CreateOrderItem = {
   originalPrice?: number;
   overrideReason?: string;
   authorizedBy?: string;
+  batchId?: string;
 };
 
 export type CreateOrderPayload = {
@@ -69,7 +70,8 @@ export const orderApi = {
         total: i.total,
         originalPrice: i.originalPrice,
         overrideReason: i.overrideReason,
-        authorizedBy: i.authorizedBy
+        authorizedBy: i.authorizedBy,
+        batchId: i.batchId
       })),
       discountAmount: payload.discountAmount ?? 0,
       paymentMethod: mapToBackendPaymentMethod(payload.paymentMethod),

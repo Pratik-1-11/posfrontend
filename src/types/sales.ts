@@ -5,6 +5,8 @@ export interface CartItem extends Product {
     originalPrice?: number;
     overrideReason?: string;
     authorizedBy?: string; // Manager ID
+    batchId?: string;
+    batchNumber?: string;
 }
 
 export interface Sale {

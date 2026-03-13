@@ -4,9 +4,11 @@ import { db } from '@/db/db';
 import type { ReactNode } from 'react';
 import type { Product } from '@/types/product';
 import { productApi } from '@/services/api/productApi';
+import { batchApi, type ProductBatch } from '@/services/api/batchApi';
 
 type ProductContextType = {
   products: Product[];
+  batches: ProductBatch[];
   loading: boolean;
   refresh: () => void;
   refreshProducts: () => void;
@@ -20,33 +22,37 @@ type ProductContextType = {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 const PRODUCTS_QUERY_KEY = ['products'];
+const BATCHES_QUERY_KEY = ['batches'];
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
 
-  // 1. Initial Load: Synchronous localStorage check for instant first-paint
-  const initialProducts = (() => {
-    try {
-      const stored = localStorage.getItem('pos_products_cache');
-      return stored ? JSON.parse(stored) : undefined;
-    } catch {
-      return undefined;
-    }
-  })();
+  const savedUser = localStorage.getItem('pos_user');
+  const tenantId = savedUser ? JSON.parse(savedUser).tenant?.id || '' : '';
 
   const [currentBranchId, setCurrentBranchId] = useState<string | undefined>(
     localStorage.getItem('pos_current_branch_id') || undefined
   );
 
   const {
-    data: products = initialProducts || [],
-    isLoading,
+    data: products = [],
+    isLoading: productsLoading,
   } = useQuery<Product[]>({
     queryKey: ['products', currentBranchId],
     queryFn: () => productApi.getAll(currentBranchId),
-    staleTime: 1 * 60 * 1000, // Shorter stale time for multi-store sync
-    gcTime: 24 * 60 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
+
+  const {
+    data: batchesData,
+    isLoading: batchesLoading,
+  } = useQuery({
+    queryKey: BATCHES_QUERY_KEY,
+    queryFn: () => batchApi.list(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const batches = batchesData?.data?.batches || [];
 
   // Listen for branch changes
   useEffect(() => {
@@ -62,32 +68,53 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('pos_branch_changed', handleBranchChange);
   }, [queryClient]);
 
-  // 2. Optimized Background Sync
+  // Optimized Background Sync to Dexie
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
     if (products.length > 0) {
-      // Debounce the sync to avoid blocking the UI on rapid changes
-      timeoutId = setTimeout(async () => {
+      const sync = async () => {
         try {
-          // Sync with LocalStorage for ultra-fast first-paint (small data only)
-          if (products.length < 500) {
-            localStorage.setItem('pos_products_cache', JSON.stringify(products));
-          }
-
-          // Sync to Dexie (Robust offline DB) - bulkPut handles upserts, no need to clear first
-          await db.products.bulkPut(products);
+          await db.products.bulkPut(products.map(p => ({
+            id: p.id,
+            name: p.name,
+            barcode: p.barcode,
+            price: p.price,
+            selling_price: p.price,
+            stock_quantity: p.stock,
+            tenant_id: tenantId,
+            last_fetched_at: Date.now()
+          })));
         } catch (err) {
-          console.error('Background sync failed:', err);
+          console.error('Dexie Product sync failed:', err);
         }
-      }, 2000); // Wait 2 seconds of inactivity before syncing
+      };
+      sync();
     }
+  }, [products, tenantId]);
 
-    return () => clearTimeout(timeoutId);
-  }, [products]);
+  useEffect(() => {
+    if (batches.length > 0) {
+      const sync = async () => {
+        try {
+          await db.productBatches.bulkPut(batches.map(b => ({
+            id: b.id,
+            product_id: b.product_id,
+            batch_number: b.batch_number,
+            cost_price: b.cost_price,
+            selling_price: b.selling_price,
+            quantity_remaining: b.quantity_remaining,
+            expiry_date: b.expiry_date,
+            tenant_id: tenantId
+          })));
+        } catch (err) {
+          console.error('Dexie Batch sync failed:', err);
+        }
+      };
+      sync();
+    }
+  }, [batches, tenantId]);
 
   const getProductById = (id: string) => {
-    return (products as Product[]).find((p: Product) => p.id === id);
+    return products.find((p: Product) => p.id === id);
   };
 
   const addProductMutation = useMutation({
@@ -118,16 +145,19 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     mutationFn: ({ productId, data }: { productId: string; data: any }) => productApi.updateStock(productId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['batches'] });
     },
   });
 
   const refreshProducts = () => {
     queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: BATCHES_QUERY_KEY });
   };
 
   const value = {
     products,
-    loading: isLoading,
+    batches,
+    loading: productsLoading || batchesLoading,
     refresh: refreshProducts,
     refreshProducts,
     addProduct: addProductMutation.mutateAsync,

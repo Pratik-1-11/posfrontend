@@ -72,5 +72,32 @@ export const accountingApi = {
             }
         }>(url);
         return data;
+    },
+
+    getBalanceSheet: async (date?: string) => {
+        let url = '/api/accounting/balance-sheet';
+        if (date) url += `?date=${date}`;
+        const { data } = await apiClient.request<{ data: any }>(url);
+        return data;
+    },
+
+    getCustomerAging: async () => {
+        const { data } = await apiClient.request<{ data: { aging: any[] } }>('/api/accounting/aging');
+        return data.aging;
+    },
+
+    getBankReconciliations: async () => {
+        const { data } = await apiClient.request<{ data: { reconciliations: any[] } }>('/api/accounting/reconciliations');
+        return data.reconciliations;
+    },
+
+    getAccountingAuditLogs: async () => {
+        const { data } = await apiClient.request<{ data: { logs: any[] } }>('/api/accounting/audit-logs');
+        return data.logs;
+    },
+
+    getCashFlowStatement: async (startDate?: string, endDate?: string) => {
+        const { data } = await apiClient.request<{ data: { cashflow: any } }>(`/api/accounting/cash-flow?startDate=${startDate || ''}&endDate=${endDate || ''}`);
+        return data.cashflow;
     }
 };

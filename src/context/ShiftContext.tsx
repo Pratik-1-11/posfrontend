@@ -15,7 +15,10 @@ interface ShiftContextType {
 const ShiftContext = createContext<ShiftContextType | undefined>(undefined);
 
 export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [currentShift, setCurrentShift] = useState<Shift | null>(null);
+    const [currentShift, setCurrentShift] = useState<Shift | null>(() => {
+        const saved = localStorage.getItem('pos_current_shift');
+        return saved ? JSON.parse(saved) : null;
+    });
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuth();
     const { toast } = useToast();
@@ -27,12 +30,24 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             return;
         }
 
+        // If offline, trust the local state
+        if (!navigator.onLine) {
+            setIsLoading(false);
+            return;
+        }
+
         try {
             setIsLoading(true);
             const shift = await shiftApi.getCurrent();
             setCurrentShift(shift);
+            if (shift) {
+                localStorage.setItem('pos_current_shift', JSON.stringify(shift));
+            } else {
+                localStorage.removeItem('pos_current_shift');
+            }
         } catch (error) {
             console.error('Failed to fetch current shift:', error);
+            // On network error, keep current state (optimistic)
         } finally {
             setIsLoading(false);
         }
@@ -41,6 +56,14 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         refreshShift();
     }, [refreshShift]);
+
+    useEffect(() => {
+        if (currentShift) {
+            localStorage.setItem('pos_current_shift', JSON.stringify(currentShift));
+        } else {
+            localStorage.removeItem('pos_current_shift');
+        }
+    }, [currentShift]);
 
     const handleOpenShift = async (startCash: number, notes?: string) => {
         try {

@@ -33,19 +33,23 @@ import { canAccessDashboard, isManager } from '@/utils/permissions';
 import { useShift } from '@/context/ShiftContext';
 import { OpenShiftModal } from '@/components/pos/OpenShiftModal';
 
+import { db } from '@/db/db';
 import type { PaymentMethod } from '@/types/payment';
 import type { Customer } from '@/types/customer';
 import type { Product } from '@/types/product';
 import type { CartItem } from '@/types/sales';
-import { Lock, PlayCircle } from 'lucide-react';
+import { Lock, PlayCircle, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+
+import { useOffline } from '@/context/OfflineContext';
 
 export const PosScreen: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { isSidebarCollapsed } = useLayout();
-  const { products, refresh, loading: productsLoading } = useProductContext();
+  const { products, batches, refresh, loading: productsLoading } = useProductContext();
   const { isShiftOpen, isLoading: shiftLoading } = useShift();
+  const { isOnline, isSyncing, pendingCount } = useOffline();
   const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
 
   // Queries
@@ -136,18 +140,35 @@ export const PosScreen: React.FC = () => {
   // Handlers
   const handleAddToCart = useCallback((product: Product) => {
     playBeep();
+
+    // Pick Batch using Local FIFO (Oldest expiry first)
+    const productBatches = batches
+      .filter(b => b.product_id === product.id && (b.quantity_remaining > 0))
+      .sort((a, b) => {
+        if (!a.expiry_date) return 1;
+        if (!b.expiry_date) return -1;
+        return new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime();
+      });
+
+    const selectedBatch = productBatches[0];
+
     setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
+      const existingItem = prev.find(item => item.id === product.id && item.batchId === selectedBatch?.id);
       if (existingItem) {
         return prev.map(item =>
-          item.id === product.id
+          (item.id === product.id && item.batchId === selectedBatch?.id)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1 } as CartItem];
+      return [...prev, {
+        ...product,
+        quantity: 1,
+        batchId: selectedBatch?.id,
+        batchNumber: selectedBatch?.batch_number
+      } as CartItem];
     });
-  }, []);
+  }, [batches]);
 
   const updateQuantity = useCallback((id: string, newQuantity: number) => {
     setCartItems(prev => {
@@ -215,22 +236,56 @@ export const PosScreen: React.FC = () => {
     }
 
     try {
-      const orderRes = await orderApi.create({
-        items: cartItems.map((i) => ({ productId: i.id, quantity: i.quantity })),
+      const orderPayload = {
+        items: cartItems.map((i) => ({
+          productId: i.id,
+          quantity: i.quantity,
+          name: i.name,
+          price: i.price,
+          total: i.price * i.quantity,
+          batchId: i.batchId
+        })),
         discountAmount: discountAmount,
         taxAmount: tax,
         paymentMethod: method,
         paymentDetails,
         customerId: selectedCustomer?.id,
         customerPan: selectedCustomer?.panNumber
+      };
+
+      const orderRes = await orderApi.create(orderPayload);
+
+      // ============================================================================
+      // OPTIMISTIC LOCAL STOCK DEDUCTION (Enterprise Grade Offline Sync)
+      // ============================================================================
+      await db.transaction('rw', [db.products, db.productBatches], async () => {
+        for (const item of cartItems) {
+          // 1. Update Global Product Stock
+          const localProduct = await db.products.get(item.id);
+          if (localProduct) {
+            await db.products.update(item.id, {
+              stock_quantity: Math.max(0, (localProduct.stock_quantity || 0) - item.quantity)
+            });
+          }
+
+          // 2. Update Batch Stock
+          if (item.batchId) {
+            const localBatch = await db.productBatches.get(item.batchId);
+            if (localBatch) {
+              await db.productBatches.update(item.batchId, {
+                quantity_remaining: Math.max(0, localBatch.quantity_remaining - item.quantity)
+              });
+            }
+          }
+        }
       });
 
-      await refresh(); // Refresh products (stock)
+      await refresh(); // Refresh products (stock) - if online this will fetch from server
       refetchStats(); // Refresh dashboard stats
 
       const newInvoiceData = {
         items: [...cartItems],
-        invoiceNumber: orderRes.invoice_number || generateInvoiceNumber(),
+        invoiceNumber: orderRes.invoice_number || orderRes.orderNumber || generateInvoiceNumber(),
         date: new Date(),
         subtotal,
         tax,
@@ -244,6 +299,7 @@ export const PosScreen: React.FC = () => {
         customer: selectedCustomer,
         discountAmount,
         vatMode,
+        isOffline: orderRes.isOffline
       };
 
       setInvoiceData(newInvoiceData);
@@ -255,8 +311,8 @@ export const PosScreen: React.FC = () => {
       playSuccess();
 
       toast({
-        title: "Sale Processed",
-        description: `Invoice #${newInvoiceData.invoiceNumber} printed`,
+        title: orderRes.isOffline ? "Sale Saved (Offline)" : "Sale Processed",
+        description: orderRes.isOffline ? "Transaction will sync when online." : `Invoice #${newInvoiceData.invoiceNumber} printed`,
       });
     } catch (error) {
       console.error('Payment error:', error);
@@ -267,7 +323,7 @@ export const PosScreen: React.FC = () => {
         variant: "destructive",
       });
     }
-  }, [cartItems, subtotal, tax, grandTotal, selectedCustomer, refresh, refetchStats, toast, paymentModal, qrModal]);
+  }, [cartItems, subtotal, tax, grandTotal, selectedCustomer, refresh, refetchStats, toast, paymentModal, qrModal, discountAmount, vatMode]);
 
   const handleHoldBill = useCallback(() => {
     if (cartItems.length > 0) {
@@ -397,6 +453,29 @@ export const PosScreen: React.FC = () => {
             MART POS
           </h1>
           <div className="flex items-center gap-3">
+            {pendingCount > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full shadow-sm text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                <History size={14} />
+                {pendingCount} Pending
+              </div>
+            )}
+            {isSyncing && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full shadow-sm text-[10px] font-black text-blue-600 uppercase tracking-widest animate-pulse">
+                <TrendingUp size={14} className="animate-spin" />
+                Syncing...
+              </div>
+            )}
+            {isOnline ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full shadow-sm text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                <Wifi size={14} />
+                Online
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-full shadow-sm text-[10px] font-black text-rose-600 uppercase tracking-widest animate-pulse">
+                <WifiOff size={14} />
+                Offline Mode
+              </div>
+            )}
             {user?.tenant?.subscription_status === 'trial' && (
               <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-[10px] font-black text-amber-600 uppercase tracking-widest animate-pulse">
                 Trial Mode

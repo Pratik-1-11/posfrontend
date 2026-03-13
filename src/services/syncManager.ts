@@ -1,15 +1,16 @@
-import { db, type OfflineSale, type Product as DbProduct, type Category as DbCategory, type Customer as DbCustomer } from '@/db/db';
+import { db, type OfflineSale, type Product as DbProduct, type Category as DbCategory, type Customer as DbCustomer, type ProductBatch as DbBatch } from '@/db/db';
 import { toast } from '@/hooks/use-toast';
 import { productApi } from '@/services/api/productApi';
 import { customerApi } from '@/services/api/customerApi';
 import { orderApi } from '@/services/api/orderApi';
+import { batchApi } from '@/services/api/batchApi';
 
 const SYNC_RETRY_DELAY = 5000; // 5 seconds
 const MAX_BATCH_SIZE = 10;
 
 export const syncManager = {
     /**
-     * Pulls latest product, category, and customer data from the server.
+     * Pulls latest product, category, batch, and customer data from the server.
      * Implements a "last sync" check to avoid redundant data transfer.
      */
     pullData: async () => {
@@ -20,11 +21,7 @@ export const syncManager = {
             const savedUser = localStorage.getItem('pos_user');
             const tenantId = savedUser ? JSON.parse(savedUser).tenant?.id || '' : '';
 
-            // 1. Get last sync timestamps
-            await db.syncState.get('last_product_sync');
-            await db.syncState.get('last_customer_sync');
-
-            // 2. Fetch Products & Categories
+            // 1. Fetch Products & Categories
             const products = await productApi.getAll();
 
             if (products.length > 0) {
@@ -44,6 +41,27 @@ export const syncManager = {
                     await db.syncState.put({ key: 'last_product_sync', value: Date.now() });
                 });
                 console.log(`[Sync] Updated ${products.length} products.`);
+            }
+
+            // 2. Fetch Active Batches (Crucial for Offline FIFO)
+            const batchResponse = await batchApi.list();
+            const batches = batchResponse.data.batches;
+
+            if (batches && batches.length > 0) {
+                await db.transaction('rw', [db.productBatches], async () => {
+                    await db.productBatches.clear();
+                    await db.productBatches.bulkAdd(batches.map((b): DbBatch => ({
+                        id: b.id,
+                        product_id: b.product_id,
+                        batch_number: b.batch_number,
+                        cost_price: b.cost_price,
+                        selling_price: b.selling_price,
+                        quantity_remaining: b.quantity_remaining,
+                        expiry_date: b.expiry_date,
+                        tenant_id: tenantId
+                    })));
+                });
+                console.log(`[Sync] Updated ${batches.length} product batches.`);
             }
 
             // 3. Fetch Categories
