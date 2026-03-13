@@ -71,8 +71,8 @@ export const CartSection: React.FC<CartSectionProps> = ({
             {/* Top Section */}
             <div className="flex flex-col flex-none">
                 {/* Today's Sales */}
-                <div className="p-3 md:p-4 bg-slate-50/50 border-b border-slate-100/50">
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between group hover:border-primary/30 transition-all cursor-default">
+                <div className="p-2 md:p-2.5 bg-slate-50/50 border-b border-slate-100/50">
+                    <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between group hover:border-primary/30 transition-all cursor-default">
                         <div className="flex items-center gap-2.5">
                             <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
                                 <TrendingUp size={18} />
@@ -83,7 +83,7 @@ export const CartSection: React.FC<CartSectionProps> = ({
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-lg font-black text-green-600">{formatCurrency(todaySales.total)}</div>
+                            <div className="text-base font-black text-green-600">{formatCurrency(todaySales.total)}</div>
                         </div>
                     </div>
                 </div>
@@ -96,7 +96,7 @@ export const CartSection: React.FC<CartSectionProps> = ({
                 )}
 
                 {/* Action Buttons */}
-                <div className="px-3 py-3 md:px-4 grid grid-cols-3 gap-2.5 border-b border-slate-100">
+                <div className="px-3 py-1.5 md:px-4 grid grid-cols-3 gap-2 border-b border-slate-100">
                     <button
                         onClick={onHoldBill}
                         disabled={items.length === 0}
@@ -131,13 +131,13 @@ export const CartSection: React.FC<CartSectionProps> = ({
                 </div>
 
                 {/* Active Cart Header */}
-                <div className="flex items-center justify-between px-4 pt-4 pb-1.5">
-                    <h2 className="text-base font-black text-slate-800 uppercase tracking-tight">Active Cart</h2>
+                <div className="flex items-center justify-between px-4 pt-2.5 pb-1">
+                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">Active Cart</h2>
                     {items.length > 0 && (
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-bold group"
+                            className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-bold group px-2"
                             onClick={onClearCart}
                         >
                             <Trash2 size={16} className="mr-2 group-hover:animate-bounce" />
@@ -147,26 +147,26 @@ export const CartSection: React.FC<CartSectionProps> = ({
                 </div>
 
                 {items.length > 0 && (
-                    <div className="px-4 py-2 flex flex-col gap-2 border-b border-slate-100 bg-slate-50/50">
+                    <div className="px-4 py-1.5 flex flex-col gap-1.5 border-b border-slate-100 bg-slate-50/50">
                         {onVatModeChange && (
                             <div className="flex gap-2 bg-slate-200/50 p-1 rounded-lg">
                                 <button
                                     onClick={() => onVatModeChange('exclusive')}
-                                    className={`flex-1 text-xs font-bold px-2 py-1.5 rounded-md transition-all ${vatMode === 'exclusive' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    className={`flex-1 text-[10px] font-bold px-2 py-1 rounded-md transition-all ${vatMode === 'exclusive' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                 >
-                                    VAT Exclusive
+                                    VAT Excl
                                 </button>
                                 <button
                                     onClick={() => onVatModeChange('inclusive')}
-                                    className={`flex-1 text-xs font-bold px-2 py-1.5 rounded-md transition-all ${vatMode === 'inclusive' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    className={`flex-1 text-[10px] font-bold px-2 py-1 rounded-md transition-all ${vatMode === 'inclusive' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                 >
-                                    VAT Inclusive
+                                    VAT Incl
                                 </button>
                             </div>
                         )}
                         {onDiscountChange && (
                             <div className="flex items-center gap-2">
-                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Discount Amt (Rs)</label>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Disc (Rs)</label>
                                 <input
                                     type="number"
                                     min="0"
@@ -178,7 +178,7 @@ export const CartSection: React.FC<CartSectionProps> = ({
                                         if (val > subtotal) val = subtotal; // validate <= subtotal
                                         onDiscountChange(val);
                                     }}
-                                    className="w-full text-sm font-bold p-1 border rounded"
+                                    className="w-full text-xs font-bold p-1 border rounded h-7"
                                     placeholder="0"
                                 />
                             </div>
@@ -198,11 +198,11 @@ export const CartSection: React.FC<CartSectionProps> = ({
                         <p className="text-[9px] font-bold mt-1">SCAN PRODUCTS TO START</p>
                     </div>
                 ) : (
-                    <div className="space-y-2 pb-3">
+                    <div className="space-y-1.5 pb-3">
                         {items.map(item => (
                             <div
                                 key={item.id}
-                                className="group flex flex-col p-2.5 bg-white hover:bg-slate-50/80 rounded-xl border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all relative"
+                                className="group flex flex-col p-2 bg-white hover:bg-slate-50/80 rounded-lg border border-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.02)] transition-all relative"
                             >
                                 <div className="flex justify-between items-start mb-1">
                                     <div className="flex-1 pr-1.5">
@@ -265,8 +265,8 @@ export const CartSection: React.FC<CartSectionProps> = ({
             </div>
 
             {/* Bottom Section */}
-            <div className="flex-none p-3.5 bg-slate-50 border-t border-slate-100 rounded-t-[26px] shadow-[0_-8px_25px_rgba(0,0,0,0.04)] z-10">
-                <div className="space-y-1 mb-2.5">
+            <div className="flex-none p-3 bg-slate-50 border-t border-slate-100 rounded-t-2xl shadow-[0_-4px_15px_rgba(0,0,0,0.04)] z-10">
+                <div className="space-y-0.5 mb-2">
                     <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <span>Subtotal ({itemCount} items)</span>
                         <span className="text-slate-600 font-black">{formatCurrency(subtotal)}</span>
@@ -285,8 +285,8 @@ export const CartSection: React.FC<CartSectionProps> = ({
                     )}
                     <div className="h-px bg-slate-200/50 w-full" />
                     <div className="flex justify-between items-center">
-                        <span className="text-sm font-black text-slate-800 uppercase tracking-widest">Grand Total</span>
-                        <span className="text-xl font-black text-primary">{formatCurrency(total)}</span>
+                        <span className="text-xs font-black text-slate-800 uppercase tracking-widest">Grand Total</span>
+                        <span className="text-lg font-black text-primary truncate ml-2">{formatCurrency(total)}</span>
                     </div>
                 </div>
 

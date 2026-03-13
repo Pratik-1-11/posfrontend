@@ -121,6 +121,11 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
                     <div>
                         <div className="flex items-center gap-2">
                             <h4 className="font-bold text-slate-800 text-sm">{selectedCustomer.name}</h4>
+                            {selectedCustomer.loyaltyPoints !== undefined && (
+                                <span className="text-[10px] font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+                                    <Sparkles size={10} /> {selectedCustomer.loyaltyPoints} Pts
+                                </span>
+                            )}
                             {selectedCustomer.totalCredit > 0 && (
                                 <span className="text-[10px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full border border-orange-200">
                                     Due: Rs.{selectedCustomer.totalCredit}
@@ -193,7 +198,14 @@ export const CustomerSelect: React.FC<CustomerSelectProps> = ({
                                                 <User size={14} />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-slate-700 text-sm group-hover:text-blue-600 transition-colors">{customer.name}</p>
+                                                <p className="font-bold text-slate-700 text-sm group-hover:text-blue-600 transition-colors">
+                                                    {customer.name}
+                                                    {customer.loyaltyPoints !== undefined && customer.loyaltyPoints > 0 && (
+                                                        <span className="ml-2 text-[10px] text-blue-500 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 italic">
+                                                            {customer.loyaltyPoints} Pts
+                                                        </span>
+                                                    )}
+                                                </p>
                                                 <p className="text-xs text-slate-400 flex items-center gap-1">
                                                     <Phone size={10} />
                                                     {customer.phone || 'No phone'}

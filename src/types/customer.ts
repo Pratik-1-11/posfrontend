@@ -12,6 +12,8 @@ export type Customer = {
     createdDate: Date;
     lastPurchaseDate?: Date;
     panNumber?: string;
+    loyaltyPoints?: number;
+    loyaltyTier?: string;
 };
 
 export type CreditSale = {

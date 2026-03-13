@@ -306,6 +306,7 @@ export const PosScreen: React.FC = () => {
       setInvoiceData(newInvoiceData);
       setLastInvoiceData(newInvoiceData);
       setCartItems([]);
+      setSelectedCustomer(null);
       paymentModal.close();
       qrModal.close();
       setShowInvoice(true);

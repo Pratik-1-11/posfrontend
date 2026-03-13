@@ -42,6 +42,7 @@ export const CustomerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     email: c.email,
                     address: c.address,
                     pan_number: c.panNumber,
+                    loyalty_points: c.loyaltyPoints,
                     tenant_id: tenantId
                 })));
             };

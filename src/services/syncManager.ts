@@ -87,6 +87,7 @@ export const syncManager = {
                         email: c.email,
                         address: c.address,
                         pan_number: c.panNumber,
+                        loyalty_points: c.loyaltyPoints,
                         tenant_id: tenantId,
                     })));
                     await db.syncState.put({ key: 'last_customer_sync', value: Date.now() });

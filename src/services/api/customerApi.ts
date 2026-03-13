@@ -32,20 +32,25 @@ type HistoryResponse = {
 };
 
 // Mapper to convert snake_case DB fields to camelCase
-const mapCustomer = (c: any): Customer => ({
-    id: c.id,
-    name: c.name,
-    phone: c.phone,
-    email: c.email,
-    address: c.address,
-    totalCredit: Number(c.total_credit || 0),
-    currentBalance: Number(c.total_credit || 0),
-    totalPurchases: Number(c.total_purchases || 0),
-    creditLimit: Number(c.credit_limit || 0),
-    panNumber: c.pan_number,
-    isActive: c.is_active,
-    createdDate: new Date(c.created_at || Date.now())
-});
+const mapCustomer = (c: any): Customer => {
+    const loyalty = c.loyalty_memberships?.[0] || {};
+    return {
+        id: c.id,
+        name: c.name,
+        phone: c.phone,
+        email: c.email,
+        address: c.address,
+        totalCredit: Number(c.total_credit || 0),
+        currentBalance: Number(c.total_credit || 0),
+        totalPurchases: Number(c.total_purchases || 0),
+        creditLimit: Number(c.credit_limit || 0),
+        panNumber: c.pan_number,
+        isActive: c.is_active,
+        createdDate: new Date(c.created_at || Date.now()),
+        loyaltyPoints: Number(loyalty.points_balance || 0),
+        loyaltyTier: loyalty.current_tier
+    };
+};
 
 
 const mapTransaction = (t: any): CustomerTransaction => ({
