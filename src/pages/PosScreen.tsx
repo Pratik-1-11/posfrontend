@@ -55,7 +55,9 @@ export const PosScreen: React.FC = () => {
   // Queries
   const { data: reportData, refetch: refetchStats } = useQuery({
     queryKey: ['daily-sales-pos'],
-    queryFn: () => reportApi.getDailySales()
+    queryFn: () => reportApi.getDailySales(),
+    enabled: !!user?.role && canAccessDashboard(user.role),
+    retry: 1
   });
 
   // State

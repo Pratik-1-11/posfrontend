@@ -31,7 +31,7 @@ export const canManageEmployees = (role?: Role | string): boolean => {
 };
 
 export const canAccessDashboard = (role?: Role | string): boolean => {
-    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER'].includes(role as string);
+    return ['SUPER_ADMIN', 'VENDOR_ADMIN', 'VENDOR_MANAGER', 'INVENTORY_MANAGER', 'CASHIER'].includes(role as string);
 };
 
 export const canAccessPos = (role?: Role | string): boolean => {
