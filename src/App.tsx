@@ -30,8 +30,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <OfflineProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <OfflineProvider>
             <ShiftProvider>
               <SettingsProvider>
                 <CustomerProvider>
@@ -53,8 +53,8 @@ function App() {
                 </CustomerProvider>
               </SettingsProvider>
             </ShiftProvider>
-          </AuthProvider>
-        </OfflineProvider>
+          </OfflineProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

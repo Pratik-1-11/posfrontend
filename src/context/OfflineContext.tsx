@@ -25,7 +25,9 @@ export const OfflineProvider: React.FC<{ children: React.ReactNode }> = ({ child
     ) ?? 0;
 
     const syncData = async () => {
-        if (!navigator.onLine || syncInProgress.current) return;
+        // Guard: Don't sync if offline, already syncing, or NOT logged in
+        const token = localStorage.getItem('pos_access_token');
+        if (!navigator.onLine || syncInProgress.current || !token) return;
 
         syncInProgress.current = true;
         setIsSyncing(true);
