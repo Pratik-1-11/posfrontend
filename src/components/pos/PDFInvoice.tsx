@@ -149,6 +149,7 @@ interface PDFInvoiceProps {
     change?: number;
     discountAmount?: number;
     vatMode?: 'exclusive' | 'inclusive';
+    loyaltyPointsEarned?: number;
 }
 
 export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
@@ -166,6 +167,7 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
     change,
     discountAmount = 0,
     vatMode = 'exclusive',
+    loyaltyPointsEarned = 0,
 }) => (
     <Document>
         <Page size="A4" style={styles.page}>
@@ -267,6 +269,13 @@ export const PDFInvoice: React.FC<PDFInvoiceProps> = ({
                         <Text style={[styles.summaryValue, { fontSize: 8, fontStyle: 'italic', textTransform: 'capitalize' }]}>
                             {String(paymentMethod)}
                         </Text>
+                    </View>
+                )}
+
+                {loyaltyPointsEarned > 0 && (
+                    <View style={[styles.summaryRow, { marginTop: 10, padding: 5, backgroundColor: '#f0f7ff', borderRadius: 4, width: '100%' }]}>
+                        <Text style={[styles.summaryLabel, { color: '#0066cc', fontSize: 10, fontWeight: 'bold' }]}>LOYALTY POINTS EARNED:</Text>
+                        <Text style={[styles.summaryValue, { color: '#0066cc', fontSize: 12, fontWeight: 'bold' }]}>{loyaltyPointsEarned}</Text>
                     </View>
                 )}
             </View>

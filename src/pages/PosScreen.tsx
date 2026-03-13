@@ -299,7 +299,8 @@ export const PosScreen: React.FC = () => {
         customer: selectedCustomer,
         discountAmount,
         vatMode,
-        isOffline: orderRes.isOffline
+        isOffline: orderRes.isOffline,
+        loyaltyPointsEarned: orderRes.loyalty_points_earned
       };
 
       setInvoiceData(newInvoiceData);

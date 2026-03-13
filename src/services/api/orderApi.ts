@@ -50,6 +50,8 @@ type BackendOrderResponse = {
       vat_amount: number;
       total_amount: number;
       payment_method: string;
+      loyalty_points_earned?: number;
+      cogs?: number;
       created_at: string;
     };
   };
@@ -92,7 +94,8 @@ export const orderApi = {
         total_amount: 0,
         orderNumber: 'PENDING-SYNC',
         totalAmount: 0,
-        isOffline: true
+        isOffline: true,
+        loyalty_points_earned: 0
       };
     }
 
@@ -109,7 +112,8 @@ export const orderApi = {
       return {
         ...o,
         orderNumber: o.invoice_number || 'N/A',
-        totalAmount: o.total_amount || 0
+        totalAmount: o.total_amount || 0,
+        loyalty_points_earned: o.loyalty_points_earned || 0
       };
     } catch (error: any) {
       // Fallback for network errors (not server errors like 400/500)
@@ -131,7 +135,8 @@ export const orderApi = {
           total_amount: 0,
           orderNumber: 'OFFLINE-SAVED',
           totalAmount: 0,
-          isOffline: true
+          isOffline: true,
+          loyalty_points_earned: 0
         };
       }
       throw error;

@@ -32,6 +32,7 @@ interface InvoiceProps {
   previousDue?: number;
   discountAmount?: number;
   vatMode?: 'exclusive' | 'inclusive';
+  loyaltyPointsEarned?: number;
 }
 
 export const Invoice: React.FC<InvoiceProps> = ({
@@ -51,6 +52,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
   previousDue,
   discountAmount = 0,
   vatMode = 'exclusive',
+  loyaltyPointsEarned = 0,
 }) => {
   const { settings } = useSettings();
 
@@ -223,6 +225,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
                 change={change}
                 discountAmount={discountAmount}
                 vatMode={vatMode}
+                loyaltyPointsEarned={loyaltyPointsEarned}
               />
             }
             fileName={`invoice-${invoiceNumber}.pdf`}
@@ -397,6 +400,13 @@ export const Invoice: React.FC<InvoiceProps> = ({
             <div className="mt-2 text-right">
               <span className="text-[10px] text-slate-400 uppercase font-black print:text-[8px]">Paid via: </span>
               <span className="text-xs font-bold capitalize print:text-[10px]">{paymentMethod}</span>
+            </div>
+          )}
+
+          {loyaltyPointsEarned > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-700 flex justify-between items-center print:bg-transparent print:border-none print:mt-1 print:p-0 print:text-black">
+              <span className="text-[9px] font-black uppercase tracking-widest">Points Earned:</span>
+              <span className="text-xl font-black">{loyaltyPointsEarned}</span>
             </div>
           )}
         </div>
